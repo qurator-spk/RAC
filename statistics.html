@@ -1,0 +1,2202 @@
+
+<html>
+<head>
+    <style>
+        table {
+            width: 60%;
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <table border="2" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>count</th>
+      <th>cumsum</th>
+      <th>zdb</th>
+      <th>title</th>
+      <th>creator</th>
+      <th>publisher</th>
+      <th>date</th>
+      <th>language</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>706544</td>
+      <td>706544</td>
+      <td>24353991</td>
+      <td>Königlich privilegirte Berlinische Zeitung von Staats- und gelehrten Sachen</td>
+      <td>Fontane, Theodor [Mitwirkender]</td>
+      <td>Berlin : Voss. Erben</td>
+      <td>1827-1911</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>641669</td>
+      <td>1348213</td>
+      <td>2436020X</td>
+      <td>Berliner Börsen-Zeitung</td>
+      <td></td>
+      <td>Berlin : Metzold</td>
+      <td>1857-1939</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>612275</td>
+      <td>1960488</td>
+      <td>27646518</td>
+      <td>Berliner Tageblatt und Handels-Zeitung</td>
+      <td>Tergit, Gabriele [Mitwirkender]</td>
+      <td>Berlin : Mosse</td>
+      <td>1872-1932</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>310273</td>
+      <td>2270761</td>
+      <td>24340492</td>
+      <td>National-Zeitung</td>
+      <td></td>
+      <td>Berlin : Die Expedition der National-Zeitung</td>
+      <td>1848-1910</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>291734</td>
+      <td>2562495</td>
+      <td>30744556</td>
+      <td>Tägliche Rundschau</td>
+      <td></td>
+      <td>Berlin : Zeitungsverlag Schmidt-Dumont &amp; Co.</td>
+      <td>1881-1922</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>281899</td>
+      <td>2844394</td>
+      <td>2719372X</td>
+      <td>Berliner Morgenpost</td>
+      <td></td>
+      <td>Berlin : Ullstein</td>
+      <td>1898-1933</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>254113</td>
+      <td>3098507</td>
+      <td>27913090</td>
+      <td>Berlinische Nachrichten von Staats- und gelehrten Sachen</td>
+      <td></td>
+      <td>Berlin : Haude &amp; Spener</td>
+      <td>1740-1872</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>203312</td>
+      <td>3301819</td>
+      <td>30743977</td>
+      <td>Deutsche Tageszeitung</td>
+      <td></td>
+      <td>Berlin : Dt. Tageszeitung AG</td>
+      <td>1894-1920</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>195156</td>
+      <td>3496975</td>
+      <td>3074409X</td>
+      <td>Der Tag</td>
+      <td></td>
+      <td>Berlin : Scherl</td>
+      <td>1901-1921</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>181813</td>
+      <td>3678788</td>
+      <td>26120215</td>
+      <td>Berliner Zeitung Online-Archiv</td>
+      <td></td>
+      <td>Berlin : Berliner Verl.</td>
+      <td>1945-1990</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>180255</td>
+      <td>3859043</td>
+      <td>30744064</td>
+      <td>Der Reichsbote</td>
+      <td></td>
+      <td>Berlin : Der Reichsbote</td>
+      <td>1873-1934</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>179451</td>
+      <td>4038494</td>
+      <td>30744088</td>
+      <td>Staatsbürger-Zeitung</td>
+      <td></td>
+      <td>Berlin : Grunert (Druck: Berlin : Schloßdruckerei G.m.b.H.)</td>
+      <td>1865-1920</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>179363</td>
+      <td>4217857</td>
+      <td>27112366</td>
+      <td>Vossische Zeitung</td>
+      <td>Tergit, Gabriele [Chefredakteur]</td>
+      <td>Berlin : Ullstein</td>
+      <td>1911-1934</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>169868</td>
+      <td>4387725</td>
+      <td>27971740</td>
+      <td>Berliner Volkszeitung</td>
+      <td></td>
+      <td>Berlin : Dt. Verl.</td>
+      <td>1904-1930</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>168578</td>
+      <td>4556303</td>
+      <td>2812988X</td>
+      <td>Königsberger Hartungsche Zeitung</td>
+      <td></td>
+      <td>Königsberg : [Verlag nicht ermittelbar]</td>
+      <td>1858-1924</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>138676</td>
+      <td>4694979</td>
+      <td>30740459</td>
+      <td>Berliner Morgen-Zeitung</td>
+      <td></td>
+      <td>Berlin : Mosse</td>
+      <td>1891-1920</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>136422</td>
+      <td>4831401</td>
+      <td>28028685</td>
+      <td>Norddeutsche allgemeine Zeitung</td>
+      <td></td>
+      <td>Berlin : Norddt. Buchdruckerei u. Verl.-Anst.</td>
+      <td>1878-1904</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>135948</td>
+      <td>4967349</td>
+      <td>30740484</td>
+      <td>Berliner Neueste Nachrichten</td>
+      <td></td>
+      <td>Berlin : Wolff</td>
+      <td>1889-1919</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>135584</td>
+      <td>5102933</td>
+      <td>2612273X</td>
+      <td>Neue Zeit Online-Archiv</td>
+      <td>Christlich-Demokratische Union</td>
+      <td>Berlin : Verl. Neue Zeit</td>
+      <td>1945-1994</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>119863</td>
+      <td>5222796</td>
+      <td>2532889X</td>
+      <td>Neues Deutschland Online-Archiv</td>
+      <td>Spickermann, Wolfgang [Mitwirkender]</td>
+      <td>Berlin : Neues Deutschland</td>
+      <td>1946-1990</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>114809</td>
+      <td>5337605</td>
+      <td>30744015</td>
+      <td>Deutsche Zeitung</td>
+      <td></td>
+      <td>Berlin : Verl. Dt. Zeitung</td>
+      <td>1896-1919</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>111754</td>
+      <td>5449359</td>
+      <td>27974534</td>
+      <td>Volks-Zeitung</td>
+      <td>Mehring, Franz [Mitwirkender]</td>
+      <td>Berlin : Gutenberg-Dr. u. Verl.</td>
+      <td>1856-1904</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>93378</td>
+      <td>5542737</td>
+      <td>27825061</td>
+      <td>Breslauer Zeitung</td>
+      <td></td>
+      <td>Breslau : Grass, Barth</td>
+      <td>1828-1917</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>74193</td>
+      <td>5616930</td>
+      <td>3074040X</td>
+      <td>Berliner Abendpost</td>
+      <td></td>
+      <td>Berlin : Ullstein</td>
+      <td>1889-1921</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>53534</td>
+      <td>5670464</td>
+      <td>3074359X</td>
+      <td>Das deutsche Blatt</td>
+      <td></td>
+      <td>Berlin : Schwiering</td>
+      <td>1891-1908</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>50916</td>
+      <td>5721380</td>
+      <td>25128437</td>
+      <td>Teltower Kreisblatt</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1856-1944</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>45546</td>
+      <td>5766926</td>
+      <td>28409322</td>
+      <td>Briesetal-Bote</td>
+      <td></td>
+      <td>Birkenwerder : [Verlag nicht ermittelbar]</td>
+      <td>1902-1943</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>44267</td>
+      <td>5811193</td>
+      <td>2807323X</td>
+      <td>[Deutsche allgemeine Zeitung &lt;Berlin&gt;] ; Deutsche allgemeine Zeitung</td>
+      <td></td>
+      <td>Berlin : Norddt. Buch-Dr. u. Verl.-Ges.</td>
+      <td>1919-1930</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>35206</td>
+      <td>5846399</td>
+      <td>24332471</td>
+      <td>Berliner Gerichts-Zeitung</td>
+      <td></td>
+      <td>Berlin : Behrend</td>
+      <td>1853-1898</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>32532</td>
+      <td>5878931</td>
+      <td>31740595</td>
+      <td>Putlitzer Nachrichten</td>
+      <td></td>
+      <td>Putlitz : Emil Völcker</td>
+      <td>1925-1941</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>31679</td>
+      <td>5910610</td>
+      <td>28113159</td>
+      <td>[Deutsche allgemeine Zeitung &lt;Berlin&gt; / Ausgabe Groß-Berlin] ; Deutsche allgemeine Zeitung</td>
+      <td></td>
+      <td>Berlin : Schmidt-Dumont</td>
+      <td>1922-1930</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>29876</td>
+      <td>5940486</td>
+      <td>30744945</td>
+      <td>Ostpreußische Zeitung</td>
+      <td></td>
+      <td>Königsberg : Schultzsche Hofbuchdruckerei</td>
+      <td>1851-1898</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>27250</td>
+      <td>5967736</td>
+      <td>24329435</td>
+      <td>Deutsch-chinesische Nachrichten</td>
+      <td></td>
+      <td>Tientsin : [Verlag nicht ermittelbar]</td>
+      <td>1930-1939</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>20265</td>
+      <td>5988001</td>
+      <td>26824620</td>
+      <td>Görlitzer Anzeiger</td>
+      <td>Görlitz</td>
+      <td>Görlitz : Jungandreas</td>
+      <td>1818-1868</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>19381</td>
+      <td>6007382</td>
+      <td>28029094</td>
+      <td>Der Oberschlesische Wanderer</td>
+      <td></td>
+      <td>Gleiwitz : Neumann</td>
+      <td>1833-1936</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>17966</td>
+      <td>6025348</td>
+      <td>24352111</td>
+      <td>[Die rote Fahne &lt;Berlin&gt;] ; Die rote Fahne</td>
+      <td>Liebknecht, Karl [Begründer]</td>
+      <td>[Wechselnde Erscheinungsorte] : [Verlag nicht ermittelbar]</td>
+      <td>1918-1933</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>16352</td>
+      <td>6041700</td>
+      <td>24360788</td>
+      <td>Türkische Post</td>
+      <td></td>
+      <td>Istanbul : [Verlag nicht ermittelbar]</td>
+      <td>1926-1943</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>15397</td>
+      <td>6057097</td>
+      <td>27230028</td>
+      <td>Rul'</td>
+      <td></td>
+      <td>Berlin : Ullstein</td>
+      <td>1920-1931</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>14877</td>
+      <td>6071974</td>
+      <td>27434114</td>
+      <td>Rheinsberger Zeitung</td>
+      <td></td>
+      <td>Rheinsberg : Thurmann</td>
+      <td>1912-1942</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>13956</td>
+      <td>6085930</td>
+      <td>2686518X</td>
+      <td>Schwedter Tageblatt</td>
+      <td></td>
+      <td>Schwedt : [Verlag nicht ermittelbar]</td>
+      <td>1925-1941</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>13503</td>
+      <td>6099433</td>
+      <td>27443449</td>
+      <td>Sorauer Tageblatt</td>
+      <td></td>
+      <td>Sorau : Rauert &amp; Pittius</td>
+      <td>1923-1944</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>13404</td>
+      <td>6112837</td>
+      <td>23820457</td>
+      <td>Deutsch-Ostafrikanische Zeitung</td>
+      <td></td>
+      <td>Morogoro : v. Roy</td>
+      <td>1899-1916</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>13234</td>
+      <td>6126071</td>
+      <td>26822829</td>
+      <td>Fehrbelliner Zeitung</td>
+      <td>Fehrbellin</td>
+      <td>Fehrbellin : [Verlag nicht ermittelbar]</td>
+      <td>1925-1941</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>12812</td>
+      <td>6138883</td>
+      <td>27450028</td>
+      <td>Baruther Anzeiger</td>
+      <td></td>
+      <td>Baruth : Särchen</td>
+      <td>1925-1942</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>12315</td>
+      <td>6151198</td>
+      <td>30743540</td>
+      <td>Spenersche Zeitung</td>
+      <td></td>
+      <td>Berlin : Haude &amp; Spener</td>
+      <td>1872-1874</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>10413</td>
+      <td>6161611</td>
+      <td>26822246</td>
+      <td>Dziennik Berliński</td>
+      <td></td>
+      <td>Berlin : Zeitung</td>
+      <td>1914-1939</td>
+      <td>pol</td>
+    </tr>
+    <tr>
+      <td>8117</td>
+      <td>6169728</td>
+      <td>24332690</td>
+      <td>Lähner Anzeiger</td>
+      <td></td>
+      <td>Lähn : [Verlag nicht ermittelbar]</td>
+      <td>1906-1919</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>8058</td>
+      <td>6177786</td>
+      <td>2773674X</td>
+      <td>Pillauer Merkur</td>
+      <td></td>
+      <td>Pillau : [Verlag nicht ermittelbar]</td>
+      <td>1870-1913</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>7430</td>
+      <td>6185216</td>
+      <td>27058621</td>
+      <td>Deutsches Nachrichtenbüro</td>
+      <td>Deutsches Nachrichtenbüro Berlin</td>
+      <td>München : Deutsches Nachrichtenbüro, Hauptstelle München</td>
+      <td>1936-1940</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>7408</td>
+      <td>6192624</td>
+      <td>24337511</td>
+      <td>Neustädter Kreisblatt</td>
+      <td>Neustadt Oberschlesien</td>
+      <td>Neustadt, O.S. : [Verlag nicht ermittelbar]</td>
+      <td>1852-1911</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>7140</td>
+      <td>6199764</td>
+      <td>24350382</td>
+      <td>Neue preußische Zeitung</td>
+      <td></td>
+      <td>Berlin : Heinicke</td>
+      <td>1857-1893</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>7131</td>
+      <td>6206895</td>
+      <td>24353243</td>
+      <td>Lokomotive an der Oder</td>
+      <td></td>
+      <td>Oels : [Verlag nicht ermittelbar]</td>
+      <td>1862-1883</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>6346</td>
+      <td>6213241</td>
+      <td>24319697</td>
+      <td>Anzeiger für das Havelland</td>
+      <td></td>
+      <td>Spandau : [Verlag nicht ermittelbar]</td>
+      <td>1905-1908</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>5744</td>
+      <td>6218985</td>
+      <td>25548839</td>
+      <td>[Pommersche Zeitung / Groß-Stettin] ; Pommersche Zeitung; Groß-Stettin</td>
+      <td></td>
+      <td>Stettin : Pommerscher Zeitungsverl.</td>
+      <td>1934-1945</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>5610</td>
+      <td>6224595</td>
+      <td>26373300</td>
+      <td>Zeitbilder</td>
+      <td></td>
+      <td>Berlin : Ullstein</td>
+      <td>1918-1934</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>5448</td>
+      <td>6230043</td>
+      <td>27479857</td>
+      <td>Leipziger Zeitungen</td>
+      <td></td>
+      <td>[Leipzig] : [Verlag nicht ermittelbar]</td>
+      <td>1737-1789</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>5414</td>
+      <td>6235457</td>
+      <td>27246632</td>
+      <td>Goldaper Kreisblatt</td>
+      <td>Kreis Goldap</td>
+      <td>Goldap : [Verlag nicht ermittelbar]</td>
+      <td>1908-1929</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>5400</td>
+      <td>6240857</td>
+      <td>29096352</td>
+      <td>Urwähler-Zeitung</td>
+      <td>Bernstein, Aaron [Chefredakteur]</td>
+      <td>Berlin : Heymanns</td>
+      <td>1849-1852</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>5227</td>
+      <td>6246084</td>
+      <td>24324218</td>
+      <td>Frankensteiner Kreisblatt</td>
+      <td>Kreis Frankenstein Schlesien</td>
+      <td>Frankenstein : Lonsky</td>
+      <td>1877-1896</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>5156</td>
+      <td>6251240</td>
+      <td>11614109</td>
+      <td>Neueste Mittheilungen</td>
+      <td></td>
+      <td>Berlin : Klee</td>
+      <td>1882-1894</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>5075</td>
+      <td>6256315</td>
+      <td>25546545</td>
+      <td>Reichswart</td>
+      <td></td>
+      <td>Berlin : Verl. Der Reichswart</td>
+      <td>1920-1936</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>4993</td>
+      <td>6261308</td>
+      <td>24327256</td>
+      <td>Groß-Wartenberger Kreisblatt</td>
+      <td>Kreis Groß Wartenberg</td>
+      <td>Groß-Wartenberg : Große</td>
+      <td>1908-1925</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>4841</td>
+      <td>6266149</td>
+      <td>26824255</td>
+      <td>Greifenhagener Kreiszeitung</td>
+      <td>Landkreis Greifenhagen</td>
+      <td>Greifenhagen : Kundler</td>
+      <td>1915-1921</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>4839</td>
+      <td>6270988</td>
+      <td>24350059</td>
+      <td>Osthavelländisches Kreisblatt</td>
+      <td></td>
+      <td>Nauen : Freyhoff</td>
+      <td>1849-1892</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>4621</td>
+      <td>6275609</td>
+      <td>26822441</td>
+      <td>Ermländische Zeitung</td>
+      <td></td>
+      <td>Braunsberg : Wichert</td>
+      <td>1902-1905</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>4499</td>
+      <td>6280108</td>
+      <td>24328558</td>
+      <td>Spandauer Zeitung</td>
+      <td></td>
+      <td>Spandau : Stückrath</td>
+      <td>1925-1933</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>4008</td>
+      <td>6284116</td>
+      <td>24329836</td>
+      <td>Die Feder</td>
+      <td></td>
+      <td>Berlin : Hirschfeld</td>
+      <td>1898-1917</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3665</td>
+      <td>6287781</td>
+      <td>2682436X</td>
+      <td>Guhrauer Anzeiger an der Schlesisch-Posener Grenze</td>
+      <td></td>
+      <td>Guhrau : Geschäftsstelle des Guhrauer Anzeigers</td>
+      <td>1915-1917</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3635</td>
+      <td>6291416</td>
+      <td>31219299</td>
+      <td>The Egyptian gazette</td>
+      <td></td>
+      <td>Alexandria : [Verlag nicht ermittelbar]</td>
+      <td>1890-1892</td>
+      <td>eng</td>
+    </tr>
+    <tr>
+      <td>3543</td>
+      <td>6294959</td>
+      <td>27960353</td>
+      <td>Neue Breslauer Zeitung</td>
+      <td></td>
+      <td>Breslau : Graß, Barth und Comp.</td>
+      <td>1820-1822</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3526</td>
+      <td>6298485</td>
+      <td>28864116</td>
+      <td>Senftenberger Anzeiger</td>
+      <td></td>
+      <td>Ruhland : [Verlag nicht ermittelbar]</td>
+      <td>1932-1933</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3526</td>
+      <td>6302011</td>
+      <td>26372939</td>
+      <td>[Die Voss / Wochen-Auslands-Ausgabe] ; Die Voss; Wochen-Auslands-Ausgabe</td>
+      <td></td>
+      <td>Berlin : Ullstein</td>
+      <td>1921-1925</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3461</td>
+      <td>6305472</td>
+      <td>24336117</td>
+      <td>Münsterberger Kreisblatt</td>
+      <td>Kreis Münsterberg</td>
+      <td>Münsterberg : [Verlag nicht ermittelbar] (Druck: Münsterberg : Troedel)</td>
+      <td>1888-1931</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3445</td>
+      <td>6308917</td>
+      <td>26836294</td>
+      <td>Neue Vetschauer Zeitung</td>
+      <td></td>
+      <td>Vetschau : Gönnel</td>
+      <td>1902-1944</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3323</td>
+      <td>6312240</td>
+      <td>9838247</td>
+      <td>Provinzial-Correspondenz</td>
+      <td></td>
+      <td>Berlin : Decker</td>
+      <td>1863-1884</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3277</td>
+      <td>6315517</td>
+      <td>26264894</td>
+      <td>Südwest</td>
+      <td></td>
+      <td>Swakopmund [u.a.] : Kindt</td>
+      <td>1910-1914</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3143</td>
+      <td>6318660</td>
+      <td>27184833</td>
+      <td>Berliner Lokal-Anzeiger</td>
+      <td></td>
+      <td>Berlin : Scherl</td>
+      <td>1910-1929</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3093</td>
+      <td>6321753</td>
+      <td>2436065X</td>
+      <td>Danziger Dampfboot für Geist, Humor, Satire, Poesie, Welt- und Volksleben, Korrespondenz, Kunst, Literatur und Theater / Hrsg.</td>
+      <td>Schumacher, Wilhelm [Herausgeber]</td>
+      <td>Danzig : Gerhard</td>
+      <td>1833-1834</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3002</td>
+      <td>6324755</td>
+      <td>27760364</td>
+      <td>Oberschlesische Zeitung</td>
+      <td></td>
+      <td>Beuthen : [Verlag nicht ermittelbar]</td>
+      <td>1904-1933</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2936</td>
+      <td>6327691</td>
+      <td>24372006</td>
+      <td>Zabrzer Kreis-Blatt</td>
+      <td>Kreis Zabrze</td>
+      <td>Zabrze : [Verlag nicht ermittelbar]</td>
+      <td>1907-1915</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2934</td>
+      <td>6330625</td>
+      <td>27478324</td>
+      <td>[Allgemeine Zeitung &lt;München&gt;] ; Allgemeine Zeitung</td>
+      <td>Cotta, Johann Friedrich von [Mitwirkender]</td>
+      <td>München : Allg. Zeitung</td>
+      <td>1798-1925</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2896</td>
+      <td>6333521</td>
+      <td>26264699</td>
+      <td>Leipziger neueste Nachrichten und Handelszeitung</td>
+      <td></td>
+      <td>Leipzig : Herfurth</td>
+      <td>1943-1945</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2833</td>
+      <td>6336354</td>
+      <td>27260112</td>
+      <td>Koschminer Zeitung und Anzeiger für die Städte Borek und Pogorzela</td>
+      <td></td>
+      <td>Koschmin : H. Tuch</td>
+      <td>1909-1918</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2807</td>
+      <td>6339161</td>
+      <td>27116967</td>
+      <td>Kolmarer Kreisblatt</td>
+      <td>Kolmar in Posen</td>
+      <td>Kolmar : [Verlag nicht ermittelbar]</td>
+      <td>1885-1897</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2806</td>
+      <td>6341967</td>
+      <td>28450747</td>
+      <td>Deutsche Nachrichten in Griechenland</td>
+      <td></td>
+      <td>Athen : [Verlag nicht ermittelbar]</td>
+      <td>1942-1944</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2723</td>
+      <td>6344690</td>
+      <td>27239494</td>
+      <td>Nakanune</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1922-1924</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>2712</td>
+      <td>6347402</td>
+      <td>27254410</td>
+      <td>Sorauer Wochenblatt für Unterhaltung, Belehrung und Ereignisse der Gegenwart</td>
+      <td></td>
+      <td>Sorau : Rauert</td>
+      <td>1817-1846</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2659</td>
+      <td>6350061</td>
+      <td>26264882</td>
+      <td>Neue Wogen der Zeit</td>
+      <td></td>
+      <td>Danzig : Schroth</td>
+      <td>1870-1878</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2647</td>
+      <td>6352708</td>
+      <td>24323688</td>
+      <td>Deutsche Zeitung in Nordchina = Dewen-ribao</td>
+      <td></td>
+      <td>Tientsin : [Verlag nicht ermittelbar]</td>
+      <td>1939-1941</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2582</td>
+      <td>6355290</td>
+      <td>27665847</td>
+      <td>Berliner Börsen-Courier</td>
+      <td>Tergit, Gabriele [Mitwirkender]</td>
+      <td>Berlin : Berl. Börsen-Courier</td>
+      <td>1885-1895</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2555</td>
+      <td>6357845</td>
+      <td>27259006</td>
+      <td>Amtliches Kreisblatt für den Kreis Koschmin</td>
+      <td>Koschmin</td>
+      <td>Koschmin : H. Tuch</td>
+      <td>1909-1918</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2508</td>
+      <td>6360353</td>
+      <td>24347784</td>
+      <td>Argentinisches Wochenblatt = Semanario argentino</td>
+      <td></td>
+      <td>Buenos Aires : Alemann</td>
+      <td>1942-1946</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2461</td>
+      <td>6362814</td>
+      <td>27246863</td>
+      <td>Gumbinner Kreisblatt</td>
+      <td>Kreis Gumbinnen</td>
+      <td>Gumbinnen : [Verlag nicht ermittelbar]</td>
+      <td>1908-1943</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2453</td>
+      <td>6365267</td>
+      <td>24325259</td>
+      <td>Groß-Strehlitzer Kreisblatt</td>
+      <td>Groß-Strehlitz</td>
+      <td>Groß-Strehlitz : [Verlag nicht ermittelbar]</td>
+      <td>1893-1926</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2412</td>
+      <td>6367679</td>
+      <td>2432291X</td>
+      <td>Bütower Anzeiger</td>
+      <td></td>
+      <td>Bütow : Meyer</td>
+      <td>1889-1918</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2348</td>
+      <td>6370027</td>
+      <td>2718366X</td>
+      <td>Kolmarer Kreiszeitung</td>
+      <td></td>
+      <td>Kolmar : [Verlag nicht ermittelbar]</td>
+      <td>1900-1918</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2206</td>
+      <td>6372233</td>
+      <td>24344771</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>2155</td>
+      <td>6374388</td>
+      <td>27457837</td>
+      <td>[Rheinsberger Zeitung / Illustrierte Beilage] ; Rheinsberger Zeitung; Illustrierte Beilage</td>
+      <td></td>
+      <td>Rheinsberg : Thurmann</td>
+      <td>1926-1931</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2130</td>
+      <td>6376518</td>
+      <td>26824814</td>
+      <td>Görlitzer Fama</td>
+      <td></td>
+      <td>Görlitz : Dreßler</td>
+      <td>1842-1849</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2096</td>
+      <td>6378614</td>
+      <td>27193615</td>
+      <td>Kölnische Zeitung</td>
+      <td></td>
+      <td>Köln : DuMont Schauberg</td>
+      <td>1803-1945</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2059</td>
+      <td>6380673</td>
+      <td>25543817</td>
+      <td>Die Redaktion</td>
+      <td>Wrede, Richard [Mitwirkender]</td>
+      <td>Berlin : Wrede</td>
+      <td>1902-1916</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2022</td>
+      <td>6382695</td>
+      <td>28922190</td>
+      <td>Oderberger Zeitung und Wochenblatt</td>
+      <td></td>
+      <td>Oderberg : Feistel</td>
+      <td>1929-1929</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1972</td>
+      <td>6384667</td>
+      <td>2700319X</td>
+      <td>Hannoverscher Kurier</td>
+      <td></td>
+      <td>Hannover : [Verlag nicht ermittelbar]</td>
+      <td>1854-1944</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1959</td>
+      <td>6386626</td>
+      <td>24359476</td>
+      <td>Gewissen</td>
+      <td></td>
+      <td>Potsdam : Wohlfahrtsbüro</td>
+      <td>1919-1929</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1952</td>
+      <td>6388578</td>
+      <td>24329307</td>
+      <td>Tilsiter allgemeine Zeitung</td>
+      <td></td>
+      <td>Tilsit : Mauderode</td>
+      <td>1914-1917</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1948</td>
+      <td>6390526</td>
+      <td>26858137</td>
+      <td>Oberlausitzische Fama</td>
+      <td></td>
+      <td>Görlitz : Nendel</td>
+      <td>1824-1827</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1946</td>
+      <td>6392472</td>
+      <td>27881386</td>
+      <td>Gumbinner allgemeine Zeitung</td>
+      <td></td>
+      <td>Gumbinnen : [Verlag nicht ermittelbar]</td>
+      <td>1943-1944</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1862</td>
+      <td>6394334</td>
+      <td>2708081X</td>
+      <td>Grünberger Wochenblatt</td>
+      <td></td>
+      <td>Grünberg : Levysohn</td>
+      <td>1857-1863</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1838</td>
+      <td>6396172</td>
+      <td>27194772</td>
+      <td>Novoe slovo</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1941-1944</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>1820</td>
+      <td>6397992</td>
+      <td>24335794</td>
+      <td>Neustettiner Kreisblatt</td>
+      <td>Neustettin</td>
+      <td>Neustettin : [Verlag nicht ermittelbar]</td>
+      <td>1862-1869</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1708</td>
+      <td>6399700</td>
+      <td>29377559</td>
+      <td>Züllichauer wöchentliche Nachrichten</td>
+      <td></td>
+      <td>Züllichau : Zwarr</td>
+      <td>1833-1843</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1696</td>
+      <td>6401396</td>
+      <td>26687665</td>
+      <td>al- Mu'aiyad</td>
+      <td></td>
+      <td>al-Qāhira : Mukātabāt al-mu'ayyad</td>
+      <td>1896-1898</td>
+      <td>ara</td>
+    </tr>
+    <tr>
+      <td>1676</td>
+      <td>6403072</td>
+      <td>25545413</td>
+      <td>Die literarische Praxis</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1901-1910</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1671</td>
+      <td>6404743</td>
+      <td>24368568</td>
+      <td>Pressedienst des Generalgouvernements / Pressechef der Regierung des Generalgouvernements</td>
+      <td>Polen</td>
+      <td>Krakau : [Verlag nicht ermittelbar]</td>
+      <td>1940-1943</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1667</td>
+      <td>6406410</td>
+      <td>24327438</td>
+      <td>Habelschwerdter Kreisblatt</td>
+      <td></td>
+      <td>Habelschwerdt : Groeger</td>
+      <td>1843-1909</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1647</td>
+      <td>6408057</td>
+      <td>24378574</td>
+      <td>[Türkische Post / Halbmonatliche Wirtschaftsausgabe] ; Türkische Post</td>
+      <td></td>
+      <td>Istanbul : [Verlag nicht ermittelbar]</td>
+      <td>1938-1941</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1596</td>
+      <td>6409653</td>
+      <td>27510451</td>
+      <td>Extract der eingelauffenen Nouvellen</td>
+      <td></td>
+      <td>[Leipzig] : [Verlag nicht ermittelbar]</td>
+      <td>1700-1750</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1583</td>
+      <td>6411236</td>
+      <td>26823408</td>
+      <td>Greifenhagener Kreisblatt</td>
+      <td>Landkreis Greifenhagen</td>
+      <td>Stettin : Greßmann (Druck: Schwedt : Oesterreich)</td>
+      <td>1844-1850</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1448</td>
+      <td>6412684</td>
+      <td>27848978</td>
+      <td>Tsingtauer neueste Nachrichten = Qingdao-xinbao</td>
+      <td></td>
+      <td>Tsingtau : Tsingtauer Zeitungsges.</td>
+      <td>1904-1914</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1424</td>
+      <td>6414108</td>
+      <td>24337778</td>
+      <td>Strehlener Stadtblatt</td>
+      <td>Strehlen Breslau</td>
+      <td>Brieg : Falch</td>
+      <td>1835-1843</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1408</td>
+      <td>6415516</td>
+      <td>24372031</td>
+      <td>Zabrzer (Hindenburger) Kreisblatt = Zabrski (Hindenburgski) ore̜downik powiatowy</td>
+      <td>Kreis Hindenburg</td>
+      <td>Hindenburg : [Verlag nicht ermittelbar]</td>
+      <td>1915-1926</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1383</td>
+      <td>6416899</td>
+      <td>27195491</td>
+      <td>Deutsches Volksecho</td>
+      <td>Heym, Stefan [Mitwirkender]</td>
+      <td>New York, NY : Pastorius</td>
+      <td>1937-1939</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1366</td>
+      <td>6418265</td>
+      <td>32084511</td>
+      <td>Cüstriner Bürgerfreund</td>
+      <td></td>
+      <td>Cüstrin : Nigmann</td>
+      <td>1839-1839</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1362</td>
+      <td>6419627</td>
+      <td>24377168</td>
+      <td>Holzmindisches Wochenblatt</td>
+      <td></td>
+      <td>Holzminden : [Verlag nicht ermittelbar]</td>
+      <td>1785-1792</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1354</td>
+      <td>6420981</td>
+      <td>28192515</td>
+      <td>Zeitung auß Deutschlandt, Welschlandt, Franckreich, Böhmen, Hungarn, Niederlandt und andern Orten</td>
+      <td>Frischmann, Veit [Herausgeber]</td>
+      <td>Berlin : Runge</td>
+      <td>1618-1620</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1324</td>
+      <td>6422305</td>
+      <td>24336816</td>
+      <td>Sprottauer Wochenblatt</td>
+      <td></td>
+      <td>Sprottau : Raabe</td>
+      <td>1839-1846</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1302</td>
+      <td>6423607</td>
+      <td>24365245</td>
+      <td>Münsterberger Wochenblatt</td>
+      <td></td>
+      <td>Münsterberg : Kurts</td>
+      <td>1840-1848</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1269</td>
+      <td>6424876</td>
+      <td>27217693</td>
+      <td>Charlottenburger Zeitung</td>
+      <td></td>
+      <td>Charlottenburg : Hanke</td>
+      <td>1880-1897</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1208</td>
+      <td>6426084</td>
+      <td>26264080</td>
+      <td>Berlinische privilegirte Zeitung</td>
+      <td>Rüdiger, Johann Andreas [Verlag] [Vertrieb]</td>
+      <td>Berlin : Johann Andreas Rüdiger</td>
+      <td>1724-1753</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1157</td>
+      <td>6427241</td>
+      <td>2434073X</td>
+      <td>Der niederschlesische Anzeiger</td>
+      <td></td>
+      <td>Glogau : [Verlag nicht ermittelbar]</td>
+      <td>1821-1826</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1137</td>
+      <td>6428378</td>
+      <td>24324905</td>
+      <td>Frankensteiner Wochenblatt</td>
+      <td></td>
+      <td>Frankenstein : Ulke</td>
+      <td>1836-1842</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1130</td>
+      <td>6429508</td>
+      <td>26866043</td>
+      <td>Stettiner General-Anzeiger</td>
+      <td></td>
+      <td>Stettin : [Verlag nicht ermittelbar]</td>
+      <td>1936-1937</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1110</td>
+      <td>6430618</td>
+      <td>24336609</td>
+      <td>Rybniker Kreisblatt</td>
+      <td>Kreis Rybnik</td>
+      <td>Rybnik : [Verlag nicht ermittelbar] (Druck: Gleiwitz : Neumann [[1842-1845]])</td>
+      <td>1842-1914</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1092</td>
+      <td>6431710</td>
+      <td>28326167</td>
+      <td>Kreisblatt des Königl. Preuss. Landraths-Amtes Preuss. Holland</td>
+      <td>Preußisch Holland</td>
+      <td>Elbing : [Verlag nicht ermittelbar]</td>
+      <td>1833-1879</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1071</td>
+      <td>6432781</td>
+      <td>28173867</td>
+      <td>Leipziger Westend-Zeitung</td>
+      <td></td>
+      <td>Leipzig-Plagwitz : E. Stephan</td>
+      <td>1896-1896</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1020</td>
+      <td>6433801</td>
+      <td>28421401</td>
+      <td>Zeitgeschehen im Wochenbild</td>
+      <td></td>
+      <td>[Erscheinungsort nicht ermittelbar] : [Verlag nicht ermittelbar]</td>
+      <td>2015-2015</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>1003</td>
+      <td>6434804</td>
+      <td>24332616</td>
+      <td>Buckower Lokal-Anzeiger</td>
+      <td>Buckow (Märk. Schweiz)</td>
+      <td>Buckow : Sirch</td>
+      <td>1933-1934</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>961</td>
+      <td>6435765</td>
+      <td>28423215</td>
+      <td>BZ am Mittag</td>
+      <td></td>
+      <td>Berlin : Berliner Verl.</td>
+      <td>1929-1929</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>948</td>
+      <td>6436713</td>
+      <td>27259985</td>
+      <td>Amtliches Kreisblatt und Anzeiger für den Kreis und die Stadt Koschmin</td>
+      <td>Koschmin</td>
+      <td>Koschmin : H. Tuch</td>
+      <td>1905-1909</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>942</td>
+      <td>6437655</td>
+      <td>2723969X</td>
+      <td>Ragniter Kreisblatt</td>
+      <td>Kreis Ragnit</td>
+      <td>Ragnit : Mügge</td>
+      <td>1882-1886</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>925</td>
+      <td>6438580</td>
+      <td>28192898</td>
+      <td>Zeitung so im ... Jahr von Wochen zu Wochen colligirt und zusammen getragen worden</td>
+      <td>Frischmann, Veit [Herausgeber]</td>
+      <td>Berlin : Runge</td>
+      <td>1622-1624</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>916</td>
+      <td>6439496</td>
+      <td>25540695</td>
+      <td>Intelligenzblatt für die Städte Oels, Bernstadt, Juliusburg, Hundsfeld und Festenberg</td>
+      <td></td>
+      <td>Oels : [Verlag nicht ermittelbar]</td>
+      <td>1856-1859</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>900</td>
+      <td>6440396</td>
+      <td>28029240</td>
+      <td>Oberschlesien im Bild</td>
+      <td></td>
+      <td>Gleiwitz : Neumann</td>
+      <td>1924-1936</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>894</td>
+      <td>6441290</td>
+      <td>27191503</td>
+      <td>Aegyptische Nachrichten</td>
+      <td></td>
+      <td>Kairo : [Verlag nicht ermittelbar]</td>
+      <td>1912-1912</td>
+      <td>egy</td>
+    </tr>
+    <tr>
+      <td>824</td>
+      <td>6442114</td>
+      <td>26825326</td>
+      <td>Muskauer Wochenblatt</td>
+      <td></td>
+      <td>Görlitz : [Verlag nicht ermittelbar]</td>
+      <td>1821-1824</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>804</td>
+      <td>6442918</td>
+      <td>25990202</td>
+      <td>Locomotive</td>
+      <td>Held, Friedrich Wilhelm Alexander [Mitwirkender]</td>
+      <td>Berlin : F. Reichardt</td>
+      <td>1848-1848</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>795</td>
+      <td>6443713</td>
+      <td>26264833</td>
+      <td>[Der Leuchtthurm &lt;Leipzig&gt;] ; Der Leuchtthurm</td>
+      <td></td>
+      <td>Leipzig : Keil</td>
+      <td>1848-1850</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>785</td>
+      <td>6444498</td>
+      <td>27185217</td>
+      <td>Der Anzeiger</td>
+      <td></td>
+      <td>Ronneburg : Schumann</td>
+      <td>1799-1802</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>760</td>
+      <td>6445258</td>
+      <td>3074491X</td>
+      <td>Die konstitutionelle Monarchie</td>
+      <td></td>
+      <td>Königsberg : Schultzsche Hofbuchdruckerei</td>
+      <td>1850-1850</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>746</td>
+      <td>6446004</td>
+      <td>26373257</td>
+      <td>Die Post aus Deutschland</td>
+      <td></td>
+      <td>Berlin : Ullstein</td>
+      <td>1925-1927</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>731</td>
+      <td>6446735</td>
+      <td>27191023</td>
+      <td>Neuer Görlitzer Anzeiger</td>
+      <td></td>
+      <td>Görlitz : [Verlag nicht ermittelbar]</td>
+      <td>1803-1808</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>711</td>
+      <td>6447446</td>
+      <td>24328327</td>
+      <td>Tilsiter Zeitung</td>
+      <td></td>
+      <td>Tilsit : Reyländer</td>
+      <td>1894-1914</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>705</td>
+      <td>6448151</td>
+      <td>27443577</td>
+      <td>Sorauer Kreisblatt</td>
+      <td>Kreis Sorau</td>
+      <td>Sorau : Rauert</td>
+      <td>1843-1847</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>686</td>
+      <td>6448837</td>
+      <td>24340649</td>
+      <td>Königsberger allgemeine Zeitung</td>
+      <td></td>
+      <td>Königsberg : [Verlag nicht ermittelbar]</td>
+      <td>1942-1942</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>638</td>
+      <td>6449475</td>
+      <td>3159590X</td>
+      <td>Tageblatt für den Kreis Schlochau</td>
+      <td></td>
+      <td>Preußisch Friedland : [Verlag nicht ermittelbar]</td>
+      <td>1923-1925</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>630</td>
+      <td>6450105</td>
+      <td>24348090</td>
+      <td>Hüben und drüben</td>
+      <td></td>
+      <td>Buenos Aires : Alemann</td>
+      <td>1942-1946</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>629</td>
+      <td>6450734</td>
+      <td>24335642</td>
+      <td>M</td>
+      <td></td>
+      <td>Münsterberg : Kurts</td>
+      <td>1836-1939</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>608</td>
+      <td>6451342</td>
+      <td>23913964</td>
+      <td>[Berliner Zeitung &lt;Berlin&gt;] ; Berliner Zeitung</td>
+      <td></td>
+      <td>Dayton, Ohio : LexisNexis</td>
+      <td>1994</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>581</td>
+      <td>6451923</td>
+      <td>27239640</td>
+      <td>Ragniter Kreis-Anzeiger</td>
+      <td>Kreis Ragnit</td>
+      <td>Ragnit : Mügge</td>
+      <td>1882-1895</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>556</td>
+      <td>6452479</td>
+      <td>28192710</td>
+      <td>Zeitung im ... Jhaar einkommen und wöchentlich zusammen getragen worden</td>
+      <td>Frischmann, Veit [Herausgeber]</td>
+      <td>Berlin : Runge</td>
+      <td>1622-1622</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>553</td>
+      <td>6453032</td>
+      <td>24347450</td>
+      <td>Vremja</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1921-1924</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>505</td>
+      <td>6453537</td>
+      <td>24376619</td>
+      <td>Seelower Tageblatt</td>
+      <td>Seelow</td>
+      <td>Seelow : [Verlag nicht ermittelbar]</td>
+      <td>1943-1943</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>465</td>
+      <td>6454002</td>
+      <td>2433781X</td>
+      <td>Strehlener Kreis- und Stadtblatt</td>
+      <td>Strehlen Breslau</td>
+      <td>Brieg : Falch</td>
+      <td>1844-1846</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>464</td>
+      <td>6454466</td>
+      <td>27452311</td>
+      <td>[Rheinsberger Zeitung / Illustrierte Unterhaltungsbeilage] ; Rheinsberger Zeitung; Illustrierte Unterhaltungsbeilage</td>
+      <td></td>
+      <td>Rheinsberg : Thurmann</td>
+      <td>1925-1926</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>455</td>
+      <td>6454921</td>
+      <td>28192552</td>
+      <td>Bericht waß sich zugetragen unnd begeben</td>
+      <td>Frischmann, Veit [Herausgeber]</td>
+      <td>Berlin : Runge</td>
+      <td>1620-1621</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>447</td>
+      <td>6455368</td>
+      <td>27193500</td>
+      <td>Les nouvelles Egyptiennes</td>
+      <td></td>
+      <td>Kairo : [Verlag nicht ermittelbar]</td>
+      <td>1912-1912</td>
+      <td>fre</td>
+    </tr>
+    <tr>
+      <td>411</td>
+      <td>6455779</td>
+      <td>31595868</td>
+      <td>Schlopper Tageblatt</td>
+      <td></td>
+      <td>Schloppe : Druck u. Verlag d. Schlopper Tageblatts, vorm. L. Schulz</td>
+      <td>1925-1925</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>376</td>
+      <td>6456155</td>
+      <td>24367898</td>
+      <td>Preußische Zeitung</td>
+      <td></td>
+      <td>Königsberg, Pr. : Sturmverl.</td>
+      <td>1944-1944</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>373</td>
+      <td>6456528</td>
+      <td>24323445</td>
+      <td>Der Beobachter an der Weichsel</td>
+      <td></td>
+      <td>Pleß : Feistel</td>
+      <td>1806-1806</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>368</td>
+      <td>6456896</td>
+      <td>27237795</td>
+      <td>Naš mir</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1924-1925</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>320</td>
+      <td>6457216</td>
+      <td>28420743</td>
+      <td>Der praktische Landwirt im Briesetal</td>
+      <td></td>
+      <td>Neudamm : Neumann</td>
+      <td>2015-2015</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>276</td>
+      <td>6457492</td>
+      <td>27809250</td>
+      <td>Heimat und Ferne / hrsg. unter Mitwirkung d. Heimatmuseums-Vereins Kreis Teltow</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1933-1935</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>271</td>
+      <td>6457763</td>
+      <td>24367424</td>
+      <td>Stadt- und Wochenblatt</td>
+      <td></td>
+      <td>Münsterberg : Kurts (Druck: (Münsterberg) : (J. Troedel))</td>
+      <td>1848-1849</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>269</td>
+      <td>6458032</td>
+      <td>28145781</td>
+      <td>Bericht was sich zu anfang dieß itzt angehenden ... Jahres in Deutschlandt, Franckreich, Welschlandt, Böhmen, Ungern, Nederlandt und in andern örten hin unnd wieder zugetragen</td>
+      <td>Frischmann, Christoph [Herausgeber]</td>
+      <td>Berlin : Runge</td>
+      <td>1617-1618</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>268</td>
+      <td>6458300</td>
+      <td>27809432</td>
+      <td>Unser Teltow / hrsg. unter Mitwirkung d. Heimatmuseums-Vereins Kreis Teltow</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1935-1939</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>248</td>
+      <td>6458548</td>
+      <td>27809493</td>
+      <td>Sonntagsruhe</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1932-1934</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>237</td>
+      <td>6458785</td>
+      <td>27248689</td>
+      <td>Severnoe slovo</td>
+      <td></td>
+      <td>Revel' : Ostland-Pressevertrieb</td>
+      <td>1942-1943</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>224</td>
+      <td>6459009</td>
+      <td>28036414</td>
+      <td>Idel-Ural</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1943-1944</td>
+      <td>tat</td>
+    </tr>
+    <tr>
+      <td>218</td>
+      <td>6459227</td>
+      <td>27352882</td>
+      <td>Kornblumen</td>
+      <td></td>
+      <td>Charlottenburg : Pinthus</td>
+      <td>1880-1897</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>208</td>
+      <td>6459435</td>
+      <td>27300729</td>
+      <td>Niederlausitzischer Anzeiger</td>
+      <td></td>
+      <td>Sorau : Rauert</td>
+      <td>1816-1816</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>192</td>
+      <td>6459627</td>
+      <td>27724633</td>
+      <td>Der Brummbär</td>
+      <td></td>
+      <td>Berlin : Ullstein</td>
+      <td>1933-1933</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>180</td>
+      <td>6459807</td>
+      <td>26268966</td>
+      <td>Deutsche Reichs-Bremse</td>
+      <td></td>
+      <td>Leipzig : Keil</td>
+      <td>1849</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>173</td>
+      <td>6459980</td>
+      <td>25543635</td>
+      <td>Deutsche Schriftsteller-Zeitung</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1910-1910</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>172</td>
+      <td>6460152</td>
+      <td>28234182</td>
+      <td>[Supreme Headquarters Allied Expeditionary Force / Fallschirm-Ausgabe] ; Supreme Headquarters Allied Expeditionary Force</td>
+      <td>Allied Forces / Supreme Headquarters</td>
+      <td>[Erscheinungsort nicht ermittelbar] : [Verlag nicht ermittelbar]</td>
+      <td>1945-1945</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>162</td>
+      <td>6460314</td>
+      <td>2435367X</td>
+      <td>Gazavat</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1943-1944</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>156</td>
+      <td>6460470</td>
+      <td>28215886</td>
+      <td>Fragmente von öffentlichen Zeitungen während des dreißigjährigen Krieges</td>
+      <td></td>
+      <td>[Erscheinungsort nicht ermittelbar] : [Verlag nicht ermittelbar]</td>
+      <td>1626-1626</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>156</td>
+      <td>6460626</td>
+      <td>26825247</td>
+      <td>Kreisblatt für die Kreisstadt Greifenhagen und Umgegend</td>
+      <td>Landkreis Greifenhagen</td>
+      <td>Greifenhagen : Kiess (Druck: Stettin : Dombrowsky)</td>
+      <td>1836-1836</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>156</td>
+      <td>6460782</td>
+      <td>27506587</td>
+      <td>Der Bergfreund</td>
+      <td></td>
+      <td>Tarnowitz : Reimann</td>
+      <td>1839-1839</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>153</td>
+      <td>6460935</td>
+      <td>24322805</td>
+      <td>Azärbajçan</td>
+      <td></td>
+      <td>Berlin : Dt. Verl.</td>
+      <td>1943-1944</td>
+      <td>aze</td>
+    </tr>
+    <tr>
+      <td>143</td>
+      <td>6461078</td>
+      <td>27248616</td>
+      <td>Novyj put'</td>
+      <td></td>
+      <td>Borisov : [Verlag nicht ermittelbar]</td>
+      <td>1942-1944</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>140</td>
+      <td>6461218</td>
+      <td>2745812X</td>
+      <td>Unterhaltung, Wissen und Heimat</td>
+      <td></td>
+      <td>Rheinsberg : Thurmann</td>
+      <td>1938-1938</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>136</td>
+      <td>6461354</td>
+      <td>26268140</td>
+      <td>Die Wartburg</td>
+      <td></td>
+      <td>Leipzig : Keil</td>
+      <td>1850-1850</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>129</td>
+      <td>6461483</td>
+      <td>27615777</td>
+      <td>Rul'</td>
+      <td></td>
+      <td>[Erscheinungsort nicht ermittelbar] : [Verlag nicht ermittelbar]</td>
+      <td>1943-1944</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>114</td>
+      <td>6461597</td>
+      <td>27615686</td>
+      <td>Novyj put'</td>
+      <td></td>
+      <td>Baranovycy : [Verlag nicht ermittelbar]</td>
+      <td>1944-1944</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>114</td>
+      <td>6461711</td>
+      <td>26264262</td>
+      <td>Fikr-i āzād</td>
+      <td></td>
+      <td>Tihrān : [Verlag nicht ermittelbar]</td>
+      <td>1924</td>
+      <td>per</td>
+    </tr>
+    <tr>
+      <td>112</td>
+      <td>6461823</td>
+      <td>28394082</td>
+      <td>Seifenblasen</td>
+      <td></td>
+      <td>Charlottenburg : Krebs</td>
+      <td>1896-1896</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>96</td>
+      <td>6461919</td>
+      <td>28394756</td>
+      <td>Der ärztliche Hausfreund</td>
+      <td></td>
+      <td>Leipzig : Böhm</td>
+      <td>1895-1896</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>94</td>
+      <td>6462013</td>
+      <td>27258981</td>
+      <td>Zarja</td>
+      <td></td>
+      <td>Berlin : [Verlag nicht ermittelbar]</td>
+      <td>1943-1944</td>
+      <td>bel</td>
+    </tr>
+    <tr>
+      <td>86</td>
+      <td>6462099</td>
+      <td>28036591</td>
+      <td>Der Montag</td>
+      <td></td>
+      <td>Berlin : Scherl</td>
+      <td>1904-1943</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>81</td>
+      <td>6462180</td>
+      <td>27779154</td>
+      <td>Baruther Heimatland</td>
+      <td></td>
+      <td>Baruth, Mark : Särchen</td>
+      <td>1932-1939</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>73</td>
+      <td>6462253</td>
+      <td>2761542X</td>
+      <td>Novyj put'</td>
+      <td></td>
+      <td>Bobrujsk : [Verlag nicht ermittelbar]</td>
+      <td>1942-1944</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>62</td>
+      <td>6462315</td>
+      <td>TEST23913964</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>60</td>
+      <td>6462375</td>
+      <td>28424980</td>
+      <td>Haus, Hof und Garten</td>
+      <td></td>
+      <td>Berlin : Mosse</td>
+      <td>1929</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>57</td>
+      <td>6462432</td>
+      <td>27248197</td>
+      <td>Dobrovolec</td>
+      <td></td>
+      <td>Pskov : [Verlag nicht ermittelbar]</td>
+      <td>1943-1944</td>
+      <td>rus</td>
+    </tr>
+    <tr>
+      <td>46</td>
+      <td>6462478</td>
+      <td>26866122</td>
+      <td>Treffurter Wochen-Blatt</td>
+      <td></td>
+      <td>Worbis : Knacker</td>
+      <td>1849-1849</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>43</td>
+      <td>6462521</td>
+      <td>28423288</td>
+      <td>Die weite Welt</td>
+      <td></td>
+      <td>Berlin : Scherl</td>
+      <td>1929</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>40</td>
+      <td>6462561</td>
+      <td>27458088</td>
+      <td>HJ im Vormarsch / hrsg. vom Bann 24 der Hitler-Jugend</td>
+      <td></td>
+      <td>Rheinsberg : Thurmann</td>
+      <td>1934-1934</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>36</td>
+      <td>6462597</td>
+      <td>28215680</td>
+      <td>Sogenannte Aviso während des dreißigjährigen Krieges mit Handschrifts-Lettern gedruckt</td>
+      <td></td>
+      <td>[Erscheinungsort nicht ermittelbar] : [Verlag nicht ermittelbar]</td>
+      <td>1626-1626</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>32</td>
+      <td>6462629</td>
+      <td>28002581</td>
+      <td>Spitzkugeln</td>
+      <td></td>
+      <td>Leipzig : Keil</td>
+      <td>1850-1850</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>21</td>
+      <td>6462650</td>
+      <td>28425017</td>
+      <td>[Berliner Tageblatt und Handelszeitung / Moden-Spiegel] ; Berliner Tageblatt und Handelszeitung; Moden-Spiegel</td>
+      <td></td>
+      <td>Berlin : Mosse [u.a.]</td>
+      <td>1929</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td>6462662</td>
+      <td>2852651X</td>
+      <td>Moskauer deutsche Zeitung</td>
+      <td></td>
+      <td>Moskau : MaWi Group</td>
+      <td>1870-1870</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>6462672</td>
+      <td>27615844</td>
+      <td>Rec'</td>
+      <td></td>
+      <td>Bobrujsk : [Verlag nicht ermittelbar]</td>
+      <td>1943-1944</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>6462681</td>
+      <td>28424979</td>
+      <td>Jede Woche Musik</td>
+      <td></td>
+      <td>Berlin : Mosse</td>
+      <td>1929-1929</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>6462689</td>
+      <td>27246802</td>
+      <td>[Deutsche Zeitung von Mexico / Deutsche Ausgabe] ; Deutsche Zeitung von Mexiko; [Deutsche Ausgabe]</td>
+      <td></td>
+      <td>Mexiko : [Verlag nicht ermittelbar]</td>
+      <td>1910-1913</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>6462692</td>
+      <td>5536832</td>
+      <td>Das Recht der Feder</td>
+      <td></td>
+      <td>Leipzig : [Verlag nicht ermittelbar]</td>
+      <td>1891-1902</td>
+      <td>ger</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>6462694</td>
+      <td>27103353</td>
+      <td>Frontpost</td>
+      <td></td>
+      <td>[Erscheinungsort nicht ermittelbar] : [Verlag nicht ermittelbar]</td>
+      <td>1944</td>
+      <td>ger</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>
