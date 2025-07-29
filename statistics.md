@@ -1,3 +1,8 @@
+Column explanation:
+
+* count : number of digitized pages per publication
+* cumsum : cumulative sum of number of digitized pages down to that row
+
 |     |   count |   cumsum | zdb          | title                                                                                                                                                                           | creator                                          | publisher                                                                     | date      | language   |
 |----:|--------:|---------:|:-------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------|:------------------------------------------------------------------------------|:----------|:-----------|
 |   0 |  706544 |   706544 | 24353991     | Königlich privilegirte Berlinische Zeitung von Staats- und gelehrten Sachen                                                                                                     | Fontane, Theodor [Mitwirkender]                  | Berlin : Voss. Erben                                                          | 1827-1911 | ger        |
