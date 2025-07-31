@@ -2,6 +2,8 @@
 
 ## ZEFYS digitization statistics
 
+Preliminaries: /zefys/archive must be mounted to or point to b-isiprod-udl.pk.de:/ifs/data/SBB/archive/zefys .
+
 There are [Markdown](artifacts/statistics.md) and [HTML](artifacts/statistics.html) files that provide a  statistical overview of the newspaper page scans that are currently contained in the ZEFYS archive.
 
 This statistics can be updated by running
