@@ -1,0 +1,10 @@
+LICENSE
+README.md
+pyproject.toml
+requirements.txt
+src/SPUNK.egg-info/PKG-INFO
+src/SPUNK.egg-info/SOURCES.txt
+src/SPUNK.egg-info/dependency_links.txt
+src/SPUNK.egg-info/entry_points.txt
+src/SPUNK.egg-info/requires.txt
+src/SPUNK.egg-info/top_level.txt

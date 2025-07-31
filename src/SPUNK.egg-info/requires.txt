@@ -1,0 +1,7 @@
+openpyxl
+tqdm
+tabulate
+matplotlib
+numpy
+pandas
+click

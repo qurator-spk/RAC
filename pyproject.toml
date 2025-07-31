@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+
+[project]
+name = "SPUNK"
+authors = [
+    {name = "Kai Labusch"},
+    {name = "Staatsbibliothek zu Berlin - Preußischer Kulturbesitz"},
+]
+description = "(S)prach(U)nabhängiger (N)achrichtenkosmos"
+readme = "README.md"
+license.file = "LICENSE"
+requires-python = ">=3.11"
+keywords = []
+
+dynamic = ["dependencies", "version"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.scripts]
+zefys-downloader = "zefys:downloader"
+
+[project.urls]
+Homepage = "https://code.dev.sbb.berlin/idm4/SPUNK"
+Repository = "https://code.dev.sbb.berlin/idm4/SPUNK.git"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", '*.yml', '*.xml', '*.xsd']
+
