@@ -11,10 +11,10 @@ dirs:
 	ln -r -s "$(IMAGES)" "$(OCR)/$(IMAGES)"
 	mkdir -p "$(OCRVIS)"
 	ln -r -s "$(IMAGES)" "$(OCRVIS)/$(IMAGES)"
-layout:
+layout: dirs
 	eynollah layout -m "$(MODELS)" -di "$(IMAGES)" -o "$(SEGMENTATION)" -light -tll -fl
-ocr: dirs layout
+ocr: layout
 	eynollah ocr -m "$(MODELS)" -di "$(IMAGES)" -dx "$(SEGMENTATION)" -o "$(OCR)"
 	rm -rf "$(OCRVIS)"
-ocr-vis: dirs layout
+ocr-vis: layout
 	eynollah ocr -m "$(MODELS)" -di "$(IMAGES)" -dx "$(SEGMENTATION)" -o "$(OCR)" -doit "$(OCRVIS)" -dtoi

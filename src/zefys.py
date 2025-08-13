@@ -1,7 +1,9 @@
 import click
 import os
 
+import numpy as np
 import pandas as pd
+from fontTools.ttLib.tables.S_V_G_ import doc_index_entry_format_0Size
 from tqdm import tqdm
 
 
@@ -44,13 +46,19 @@ from tqdm import tqdm
               help="")
 @click.option('--language', type=int, multiple=True, default=None,
               help="")
+@click.option('--batch-size', type=int, default=None,
+              help="")
+@click.option('--start-batch', type=int, default=0,
+              help="")
+@click.option('--num-batches', type=int, default=None,
+              help="")
 def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                year, start_year, stop_year,
                month, start_month, stop_month,
                day, start_day, stop_day,
                issue, start_issue, stop_issue,
                page, start_page, stop_page,
-               language):
+               language, batch_size, start_batch, num_batches):
 
     def apply_filter(df, column_name, values, start, stop):
 
@@ -82,12 +90,18 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
 
     print("{} entries remain after filtering.".format(len(df_files)))
 
-    os.mkdir(target_path)
+    print("Sorting ...")
 
-    if zefys_prefix is not None:
+    df_files = df_files.sort_values(by=['year', 'month', 'day', 'issue', 'page'])
+
+    print("done.")
+
+    def link_batch(batch, tpath):
+
+        os.mkdir(tpath)
 
         for _, (fullpath, url, z, y, m, d, i, p, t) \
-                in tqdm(df_files[['fullpath', 'url', 'zdb', 'year', 'month', 'day', 'issue', 'page', 'type']].
+                in tqdm(batch[['fullpath', 'url', 'zdb', 'year', 'month', 'day', 'issue', 'page', 'type']].
                                 iterrows(), total=len(df_files), desc="Creating symlinks "):
 
             file = zefys_prefix + fullpath
@@ -96,11 +110,22 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                 print("Warning! File {} does not exist!.".format(file))
                 continue
 
-            dest = "{}/{}-{}-{}-{}-{}-{}.{}".format(target_path, z, y, m, d, i, p, t)
+            dest = "{}/{}-{}-{}-{}-{}-{}.{}".format(tpath, z, y, m, d, i, p, t)
 
             os.symlink(file, dest)
 
-            pass
+    if zefys_prefix is not None:
+            if batch_size is None:
+                link_batch(df_files, target_path)
+            else:
+                max_batches = np.ceil(len(df_files)/batch_size)
+                print("max number of batches: {}".format(max_batches))
+
+                num_batches = num_batches if start_batch + num_batches < max_batches else max_batches - start_batch
+
+                for b in range(start_batch, num_batches):
+                    link_batch(df_files.iloc[b*batch_size:(b+1)*batch_size, :],
+                               "{}-batch-{}".format(target_path, b))
     else:
         pass
 
