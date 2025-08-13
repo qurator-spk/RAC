@@ -102,7 +102,7 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
 
         for _, (fullpath, url, z, y, m, d, i, p, t) \
                 in tqdm(batch[['fullpath', 'url', 'zdb', 'year', 'month', 'day', 'issue', 'page', 'type']].
-                                iterrows(), total=len(df_files), desc="Creating symlinks "):
+                                iterrows(), total=len(batch), desc="Creating symlinks in {}".format(tpath)):
 
             file = zefys_prefix + fullpath
 
@@ -123,7 +123,7 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
 
                 num_batches = num_batches if start_batch + num_batches < max_batches else max_batches - start_batch
 
-                for b in range(start_batch, num_batches):
+                for b in range(start_batch, start_batch + num_batches):
                     link_batch(df_files.iloc[b*batch_size:(b+1)*batch_size, :],
                                "{}-batch-{}".format(target_path, b))
     else:
