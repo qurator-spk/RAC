@@ -112,7 +112,11 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
 
             dest = "{}/{}-{}-{}-{}-{}-{}.{}".format(tpath, z, y, m, d, i, p, t)
 
-            os.symlink(file, dest)
+            try:
+                os.symlink(file, dest)
+            except Exception as e:
+                print("Error creating {} -> {}".format(file, dest))
+                print(str(e))
 
     if zefys_prefix is not None:
             if batch_size is None:
