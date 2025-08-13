@@ -118,7 +118,7 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
             if batch_size is None:
                 link_batch(df_files, target_path)
             else:
-                max_batches = np.ceil(len(df_files)/batch_size)
+                max_batches = int(np.ceil(len(df_files)/batch_size))
                 print("max number of batches: {}".format(max_batches))
 
                 num_batches = num_batches if start_batch + num_batches < max_batches else max_batches - start_batch
