@@ -119,17 +119,17 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                 print(str(e))
 
     if zefys_prefix is not None:
-            if batch_size is None:
-                link_batch(df_files, target_path)
-            else:
-                max_batches = int(np.ceil(len(df_files)/batch_size))
-                print("max number of batches: {}".format(max_batches))
+        if batch_size is None:
+            link_batch(df_files, target_path)
+        else:
+            max_batches = int(np.ceil(len(df_files)/batch_size))
+            print("max number of batches: {}".format(max_batches))
 
-                num_batches = num_batches if start_batch + num_batches < max_batches else max_batches - start_batch
+            num_batches = num_batches if start_batch + num_batches < max_batches else max_batches - start_batch
 
-                for b in range(start_batch, start_batch + num_batches):
-                    link_batch(df_files.iloc[b*batch_size:(b+1)*batch_size, :],
-                               "{}-batch-{}".format(target_path, b))
+            for b in range(start_batch, start_batch + num_batches):
+                link_batch(df_files.iloc[b*batch_size:(b+1)*batch_size, :],
+                           "{}-batch-{}".format(target_path, b))
     else:
         pass
 
