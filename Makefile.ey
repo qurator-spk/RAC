@@ -6,11 +6,11 @@ OCRVIS=ey-ocr-vis-$(IMAGES)
 
 dirs:
 	mkdir -p "$(SEGMENTATION)"
-	ln -r -s "$(IMAGES)" "$(SEGMENTATION)/$(IMAGES)"
+	ln -rfn -s "$(IMAGES)" "$(SEGMENTATION)/$(IMAGES)"
 	mkdir -p "$(OCR)"
-	ln -r -s "$(IMAGES)" "$(OCR)/$(IMAGES)"
+	ln -rfn -s "$(IMAGES)" "$(OCR)/$(IMAGES)"
 	mkdir -p "$(OCRVIS)"
-	ln -r -s "$(IMAGES)" "$(OCRVIS)/$(IMAGES)"
+	ln -rfn -s "$(IMAGES)" "$(OCRVIS)/$(IMAGES)"
 layout: dirs
 	eynollah layout -m "$(MODELS)" -di "$(IMAGES)" -o "$(SEGMENTATION)" -light -tll -fl
 ocr: layout
