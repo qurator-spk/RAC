@@ -25,7 +25,11 @@ classifiers = [
 ]
 
 [project.scripts]
+zefys-scanner = "zefys:scanner"
 zefys-downloader = "zefys:downloader"
+zefys-ocr-database = "zefys:create_ocr_database"
+zefys-unpack-ocr-database = "zefys:unpack_ocr_database"
+create-article-database = "articles:create_article_database"
 
 [project.urls]
 Homepage = "https://code.dev.sbb.berlin/idm4/SPUNK"

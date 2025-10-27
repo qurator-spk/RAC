@@ -1,10 +1,35 @@
+import io
+
 import click
 import os
 
+import ipdb
 import numpy as np
 import pandas as pd
-from fontTools.ttLib.tables.S_V_G_ import doc_index_entry_format_0Size
+# from fontTools.ttLib.tables.S_V_G_ import doc_index_entry_format_0Size
 from tqdm import tqdm
+import re
+import json
+from fnmatch import fnmatch
+import sqlite3
+import zipfile
+
+from parallel import run as prun
+
+from pathlib import Path
+
+@click.command()
+@click.option('--zefys-filelist', type=str, default=None,help=""
+                                                              "Run in /nfs/zefys (takes roughly 24 hours!):         "
+                                                              "find ./ -wholename \"*/presentation/*.jpg\" "
+                                                              "   -o -wholename \"*/presentation/*.jpeg\""
+                                                              "   -o -wholename \"*/presentation/*.png\" > "
+                                                              "~/SPUNK/workbench/zefys_image_files.txt")
+def scanner(zefys_filelist):
+    """
+    :return:
+    """
+    pass
 
 
 @click.command()
@@ -134,3 +159,206 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
         pass
 
     pass
+
+def setup_ocr_database(conn):
+    conn.execute('BEGIN EXCLUSIVE TRANSACTION')
+
+    conn.execute('CREATE TABLE IF NOT EXISTS ocr ('
+                 'id INTEGER PRIMARY KEY, '
+                 'zdb_id TEXT NOT NULL, '
+                 'year INTEGER,'
+                 'month INTEGER, '
+                 'day INTEGER, '
+                 'issue INTEGER, '
+                 'page INTEGER, '
+                 'file TEXT NOT NULL, '
+                 'xml_data BLOB NOT NULL)'
+                 )
+
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_zdb ON ocr(zdb_id);')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_year ON ocr(year);')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_month ON ocr(month);')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_day ON ocr(day);')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_issue ON ocr(issue);')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_page ON ocr(page);')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_issue_all_pages ON ocr(zdb_id, year, month, day, issue);')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_zdb_id_year ON ocr(zdb_id, year);')
+
+    conn.execute('COMMIT TRANSACTION')
+
+class UnzipTask:
+
+    def __init__(self, file, target_file, xml_data):
+
+        self._file = file
+        self._target_file = target_file
+        self._xml_data = xml_data
+
+    def __call__(self, *args, **kwargs):
+
+        # noinspection PyBroadException
+        try:
+            xml_data = io.BytesIO(self._xml_data)
+
+            with zipfile.ZipFile(xml_data, mode="r", compression=zipfile.ZIP_BZIP2) as zf:
+                buffer = zf.read(name=self._file)
+
+            if type(self._target_file) == str:
+                with open(self._target_file, "wb") as tf:
+                    tf.write(buffer)
+            else:
+                self._target_file.write(buffer)
+                self._target_file.seek(0)
+
+        except Exception as e:
+            print(e)
+            return None
+
+        return self._target_file
+
+
+@click.command()
+@click.argument('sqlite-file', type=click.Path(exists=False))
+@click.option('--flat', type=bool, is_flag=True, default=False, help="Do not create a directory structure.")
+@click.option('--processes', type=int, default=None, help="Number of parallel processes to be used. "
+                                                          "(default all cores)")
+def unpack_ocr_database(sqlite_file, flat, processes):
+        def get_unzip_tasks():
+            with (sqlite3.connect(sqlite_file) as con):
+                cur = con.cursor()
+                cur.execute('SELECT * from ocr')
+
+                _cur_it = tqdm(cur)
+
+                for (aid, zdb_id, year, month, day, issue, page, file, xml_data) in _cur_it:
+
+                    if flat:
+                        target_file = "{}-{}-{}-{}-{}-{}.xml".format(zdb_id, year,
+                                                                        month, day, issue, page)
+                    else:
+
+                        target_path = "./{}/{}/{}/{}/{}".format(zdb_id, year, month, day, issue)
+
+                        Path(target_path).mkdir(parents=True, exist_ok=True)
+
+                        target_file = "{}/{}-{}-{}-{}-{}-{}.xml".format(target_path, zdb_id, year,
+                                                                        month, day, issue, page)
+
+                    # _cur_it.set_description(target_file +"\t\t\t\t")
+
+                    yield UnzipTask(file, target_file, xml_data)
+
+        for written_file in prun(get_unzip_tasks(), processes=processes):
+            # print(written_file)
+            pass
+
+
+class ZipTask:
+
+    def __init__(self, filename):
+
+        self._filename = filename
+
+    def __call__(self, *args, **kwargs):
+
+        # noinspection PyBroadException
+        try:
+            xml_data = io.BytesIO()
+
+            with zipfile.ZipFile(xml_data, mode="w", compression=zipfile.ZIP_BZIP2, compresslevel=1) as zf:
+                zf.write(filename=self._filename)
+
+            xml_data.seek(0)
+        except Exception as e:
+            print(e)
+            return None, None
+
+        return self._filename, xml_data
+
+
+@click.command()
+@click.argument('directory', type=click.Path(exists=True))
+@click.argument('sqlite-file', type=click.Path(exists=False))
+@click.option('--pattern', type=str, default="*.xml", help="File pattern to search for. Default: *.xml")
+@click.option('--follow-symlinks', type=bool, is_flag=True, default=False)
+@click.option('--subset-json', type=click.Path(exists=True), default=None,
+              help="Consider only the subset of page-XML files defined in this json file.")
+@click.option('--subset-dirs-json', type=click.Path(exists=True), default=None,
+              help="Recursively search only through a subset of sub-directories as defined in this json file.")
+@click.option('--processes', type=int, default=None, help="Number of parallel processes to be used. "
+                                                          "(default all cores)")
+def create_ocr_database(directory, sqlite_file, pattern, follow_symlinks, subset_json, subset_dirs_json, processes):
+
+    subset_dirs = None
+    if subset_dirs_json is not None:
+        with open(subset_dirs_json, 'r') as sdf:
+            subset_dirs = set(json.load(sdf))
+
+    def file_it(to_scan):
+        nonlocal subset_dirs
+        nonlocal follow_symlinks
+
+        for af in os.scandir(to_scan):
+
+            try:
+                if af.is_dir(follow_symlinks=follow_symlinks):
+
+                    if subset_dirs is not None and af.path not in subset_dirs:
+                        continue
+
+                    for g in file_it(af):
+                        yield g
+                else:
+                    if not fnmatch(af.path, pattern):
+                        continue
+                    yield af.path
+            except NotADirectoryError:
+                continue
+
+    _file_it = tqdm(file_it(directory))
+
+    subset = None
+    if subset_json is not None:
+        with open(subset_json, 'r') as f:
+            subset = json.load(f)
+
+    print("Scanning for {} files ...".format(pattern))
+    page_xmls = []
+    for afile in _file_it:
+
+        if subset is not None:
+            if os.path.basename(afile) not in subset:
+                continue
+
+        if not (m := re.match("(.*?)-(.*?)-(.*?)-(.*?)-(.*?)-(.*?).xml", os.path.basename(afile))):
+            print("Warning! XML filename doest not match ZDBID-YEAR-MONTH-DAY-ISSUE-PAGE.xml pattern: {}".format(afile))
+            continue
+
+        page_xmls.append((afile,) + m.group(1, 2, 3, 4, 5, 6))
+
+        _file_it.set_description("[{}]".format(len(page_xmls)))
+
+    page_xmls = pd.DataFrame(page_xmls, columns=['file', 'zdb_id', 'year', 'month', 'day', 'issue', 'page'])
+
+    def get_zip_tasks():
+        for _, (a_file,) in page_xmls[['file']].iterrows():
+            yield ZipTask(a_file)
+
+    for col in ['year', 'month', 'day', 'issue', 'page']:
+        page_xmls[col] = page_xmls[col].astype(int)
+
+    with (sqlite3.connect(sqlite_file) as con):
+        setup_ocr_database(con)
+
+        for (_, (file, zdb_id, year, month, day, issue, page)), (xfile, xml_data) \
+                        in tqdm(zip(page_xmls.iterrows(), prun(get_zip_tasks(), processes=processes)),
+                                total=len(page_xmls)):
+
+            if xfile is None or xml_data is None:
+                continue
+
+            assert (file==xfile)
+
+            con.execute('INSERT INTO ocr(zdb_id, year, month, day, issue, page, file, xml_data) '
+                         'VALUES(?,?,?,?,?,?,?,?)',
+                         (zdb_id, year, month, day, issue, page, file, sqlite3.Binary(xml_data.read())))
