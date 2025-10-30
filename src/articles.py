@@ -257,6 +257,9 @@ def create_article_database(ocr_db_sqlite, sqlite_file, processes,
         for state, result in tqdm(prun(get_extraction_regions_tasks(), processes=processes)):
 
             if state == "Regions":
+                if len(result) == 0:
+                    continue
+
                 regions.append(result)
                 continue
 
