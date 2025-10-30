@@ -1,7 +1,0 @@
-[console_scripts]
-article-json-export = articles:article_json_export
-create-article-database = articles:create_article_database
-zefys-downloader = zefys:downloader
-zefys-ocr-database = zefys:create_ocr_database
-zefys-scanner = zefys:scanner
-zefys-unpack-ocr-database = zefys:unpack_ocr_database
