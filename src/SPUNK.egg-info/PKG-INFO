@@ -20,6 +20,7 @@ Requires-Dist: matplotlib
 Requires-Dist: numpy
 Requires-Dist: pandas
 Requires-Dist: click
+Requires-Dist: requests
 
 # (S)prach(U)nabhängiger (N)achrichten(K)osmos
 

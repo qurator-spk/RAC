@@ -18,6 +18,18 @@ from parallel import run as prun
 
 from pathlib import Path
 
+
+def apply_filter(df, column_name, values, start, stop):
+    if start is not None and stop is not None:
+
+        df = df.loc[(df[column_name] >= start) & (df[column_name] < stop)]
+
+    elif len(values) > 0:
+        df = df.loc[df[column_name].isin(values)]
+
+    return df
+
+
 @click.command()
 @click.option('--zefys-filelist', type=str, default=None,help=""
                                                               "Run in /nfs/zefys (takes roughly 24 hours!):         "
@@ -38,39 +50,39 @@ def scanner(zefys_filelist):
 @click.option('--zefys-prefix', type=str, default=None,
               help="")
 @click.option('--zdb-id', type=str, multiple=True, default=None,
-              help="")
+              help="Consider only this ZDB-ID (can be supplied multiple times).")
 @click.option('--year', type=int, multiple=True, default=None,
-              help="")
+              help="Consider only this year (can be supplied multiple times).")
 @click.option('--start-year', type=int, default=None,
-              help="")
+              help="Consider a time interval [start-year, stop-year[")
 @click.option('--stop-year', type=int, default=None,
-              help="")
+              help="Consider a time interval [start-year, stop-year[")
 @click.option('--month', type=int, multiple=True, default=None,
-              help="")
+              help="Consider only this month (can be supplied multiple times).")
 @click.option('--start-month', type=int, default=None,
-              help="")
+              help="Consider a time interval [start-month, stop-month[")
 @click.option('--stop-month', type=int, default=None,
-              help="")
+              help="Consider a time interval [start-month, stop-month[")
 @click.option('--day', type=int, multiple=True, default=None,
-              help="")
+              help="Consider only this day (can be supplied multiple times).")
 @click.option('--start-day', type=int, default=None,
-              help="")
+              help="Consider a time interval [start-day, stop-day[")
 @click.option('--stop-day', type=int, default=None,
-              help="")
+              help="Consider a time interval [start-day, stop-day[")
 @click.option('--issue', type=int, multiple=True, default=None,
-              help="")
+              help="Consider only this issue (can be supplied multiple times).")
 @click.option('--start-issue', type=int, default=None,
-              help="")
+              help="Consider a time interval [start-issue, stop-issue[")
 @click.option('--stop-issue', type=int, default=None,
-              help="")
+              help="Consider a time interval [start-issue, stop-issue[")
 @click.option('--page', type=int, multiple=True, default=None,
-              help="")
+              help="Consider only this page (can be supplied multiple times).")
 @click.option('--start-page', type=int, default=None,
-              help="")
+              help="Consider a page interval [start-page, stop-page[")
 @click.option('--stop-page', type=int, default=None,
-              help="")
+              help="Consider a page interval [start-page, stop-page[")
 @click.option('--language', type=int, multiple=True, default=None,
-              help="")
+              help="Consider only this language (can be supplied multiple times).")
 @click.option('--batch-size', type=int, default=None,
               help="")
 @click.option('--start-batch', type=int, default=0,
@@ -84,17 +96,6 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                issue, start_issue, stop_issue,
                page, start_page, stop_page,
                language, batch_size, start_batch, num_batches):
-
-    def apply_filter(df, column_name, values, start, stop):
-
-        if start is not None and stop is not None:
-
-            df = df.loc[(df[column_name] >= start) & (df[column_name] < stop)]
-
-        elif len(values) > 0:
-            df = df.loc[df[column_name].isin(values)]
-
-        return df
 
     df_files = pd.read_csv(scan_images_file, sep='\t', low_memory=False)
 

@@ -30,6 +30,7 @@ zefys-downloader = "zefys:downloader"
 zefys-ocr-database = "zefys:create_ocr_database"
 zefys-unpack-ocr-database = "zefys:unpack_ocr_database"
 create-article-database = "articles:create_article_database"
+article-json-export = "articles:article_json_export"
 
 [project.urls]
 Homepage = "https://code.dev.sbb.berlin/idm4/SPUNK"

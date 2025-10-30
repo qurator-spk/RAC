@@ -3,6 +3,21 @@ from tqdm import tqdm
 import requests
 import xml.etree.ElementTree as ElementTree
 
+
+def get_zdb_meta_dummy(df):
+
+    vals = pd.DataFrame(df.zdb_id.value_counts().reset_index())
+
+    df_meta = []
+    for _, (zdb, count) in tqdm(vals.iterrows(), total=len(vals), desc="Retrieving dummy ZDB meta data ..."):
+
+        df_meta.append({"zdb_id": zdb, "title": "UNK", "creator": "UNK", "publisher": "UNK", "date": "UNK",
+                        "language": "UNK"})
+
+    df_meta = pd.DataFrame(df_meta).reset_index(drop=True).set_index("zdb_id")
+
+    return df_meta
+
 def get_zdb_meta_data(df):
 
     vals = pd.DataFrame(df.zdb_id.value_counts().reset_index())
@@ -13,6 +28,8 @@ def get_zdb_meta_data(df):
 
         url = ("https://services.dnb.de/sru/zdb?"
                "version=1.1&operation=searchRetrieve&query=zdbid={}&recordSchema=oai_dc").format(zdb_id)
+
+        print(url)
 
         response = requests.get(url, stream=True)
 
