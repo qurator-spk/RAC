@@ -385,6 +385,7 @@ def identify_articles(regions, zdb_id, year, month, day, issue, num_pages, strat
 @click.argument('art-db-sqlite', type=click.Path(exists=True))
 @click.option('--json-file', type=click.Path(exists=False), default=None, help="")
 @click.option('--json-single-line-file', type=click.Path(exists=False), default=None)
+@click.option('--zdb-json-meta-file', type=click.Path(), default=None)
 @click.option('--zdb-id', type=str, multiple=True, default=None,
               help="Consider only this ZDB-ID (can be supplied multiple times).")
 @click.option('--year', type=int, multiple=True, default=None,
@@ -417,7 +418,7 @@ def identify_articles(regions, zdb_id, year, month, day, issue, num_pages, strat
               help="Consider a page interval [start-page, stop-page[")
 @click.option('--stop-page', type=int, default=None,
               help="Consider a page interval [start-page, stop-page[")
-def article_json_export(art_db_sqlite, json_file, json_single_line_file,
+def article_json_export(art_db_sqlite, json_file, json_single_line_file, zdb_json_meta_file,
                         zdb_id, year, start_year, stop_year, month, start_month, stop_month,
                         day, start_day, stop_day, issue, start_issue, stop_issue, page, start_page, stop_page):
 
@@ -441,8 +442,8 @@ def article_json_export(art_db_sqlite, json_file, json_single_line_file,
 
         print("{} entries remain after filtering.".format(len(df_articles)))
 
-        # df_zdb_meta = get_zdb_meta_data(df_articles)
-        df_zdb_meta = get_zdb_meta_dummy(df_articles)
+        df_zdb_meta = get_zdb_meta_data(df_articles, zdb_json_meta_file)
+        # df_zdb_meta = get_zdb_meta_dummy(df_articles)
 
         sl_file = open(json_single_line_file, "a+", encoding="utf-8") if json_single_line_file is not None else None
 
