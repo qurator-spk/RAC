@@ -451,7 +451,11 @@ def article_json_export(art_db_sqlite, json_file, json_single_line_file, zdb_jso
         for (_, (article_id, zdb_id, year, month, day, issue, start_page, num_pages)) \
                 in tqdm(df_articles.iterrows(), total=len(df_articles)):
 
-            url = ("https://content.staatsbibliothek-berlin.de/zefys/"
+            url = ("https://dfg-viewer.de/show/?set%5Bmets%5D=https://content.staatsbibliothek-berlin.de/zefys/"
+                   "SNP{}-{}{:02d}{:02d}-{}-0-0-0.xml&tx_dlf[page]={}".
+                       format(zdb_id, year, month, day, issue - 1, start_page))
+
+            img_url = ("https://content.staatsbibliothek-berlin.de/zefys/"
                    "SNP{}-{}{:02d}{:02d}-{}-{}-0-0/full/full/0/default.jpg".
                    format(zdb_id, year, month, day, issue - 1, start_page))
 
@@ -474,13 +478,14 @@ def article_json_export(art_db_sqlite, json_file, json_single_line_file, zdb_jso
                     "position_s": str(start_page) + "-" + str(article_id),
                     "hasModel_s": "article",
                     "url_s": url,
+                    "image_url_s": img_url,
                     "collection_s": collection,
                     "language_ss": ["german"],
                     "issued_s": "{}-{:02d}-{:02d}".format(year, month, day),
                     "noOfpages_s": str(num_pages),
                     "month_s": "{}-{:02d}".format(year, month),
                     "year_s": str(year),
-                    "decade_s": str(year / 10 * 10)
+                    "decade_s": str(int(year/10)*10)
                 }
 
             if sl_file is not None:
@@ -498,3 +503,9 @@ def article_json_export(art_db_sqlite, json_file, json_single_line_file, zdb_jso
         with open(json_file, "w", encoding="utf-8") as a_file:
             # noinspection PyTypeChecker
             json.dump(json_articles, a_file, ensure_ascii=False, indent=3)
+
+
+@click.command()
+@click.argument('art-db-sqlite', type=click.Path(exists=True))
+def create_article_search_index():
+    pass
