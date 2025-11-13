@@ -130,9 +130,6 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
         df_files = df_files.loc[df_files.file.isnull()]
         df_files = df_files.drop(columns=["file"])
 
-        import ipdb;
-        ipdb.set_trace()
-
     print("{} entries remain after filtering.".format(len(df_files)))
 
     print("Sorting ...")
