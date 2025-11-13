@@ -97,7 +97,7 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                day, start_day, stop_day,
                issue, start_issue, stop_issue,
                page, start_page, stop_page,
-               language, batch_size, start_batch, num_batches, ):
+               language, batch_size, start_batch, num_batches, exclude_tsv):
     """
     SCAN_IMAGES_FILE: A TSV file containing of list of all ZEFYS page scan image files that are to be considered.
     (see zefys-scanner)
@@ -119,6 +119,19 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
     df_files = apply_filter(df_files, "issue", issue, start_issue, stop_issue)
     df_files = apply_filter(df_files, "page", page, start_page, stop_page)
     df_files = apply_filter(df_files, "language", language, None, None)
+
+    if exclude_tsv is not None:
+        df_excl = []
+        for tsv_file in exclude_tsv:
+            df_excl.append(pd.read_csv(tsv_file, sep='\t', low_memory=False).rename(columns={"zdb_id": "zdb"}))
+        df_excl = pd.concat(df_excl).reset_index(drop=True)
+
+        df_files = df_files.merge(df_excl, on=['zdb', 'year', 'month', 'day', 'issue', 'page'], how="left")
+        df_files = df_files.loc[df_files.file.isnull()]
+        df_files = df_files.drop(columns=["file"])
+
+        import ipdb;
+        ipdb.set_trace()
 
     print("{} entries remain after filtering.".format(len(df_files)))
 
