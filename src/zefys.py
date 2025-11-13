@@ -224,6 +224,16 @@ class UnzipTask:
 
         return self._target_file
 
+@click.command()
+@click.argument('sqlite-file', type=click.Path(exists=True))
+@click.argument('tsv-file-out', type=click.Path(exists=False))
+def extract_filelist_ocr_database(sqlite_file, tsv_file_out):
+
+    with sqlite3.connect(sqlite_file) as con:
+        df_files = pd.read_sql("SELECT zdb_id, year , month, day, issue, page, file FROM ocr", con=con)
+
+        df_files.to_csv(tsv_file_out, sep='\t', index=False)
+
 
 @click.command()
 @click.argument('sqlite-file', type=click.Path(exists=False))
