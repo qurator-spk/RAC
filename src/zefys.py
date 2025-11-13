@@ -84,18 +84,24 @@ def scanner(zefys_filelist):
 @click.option('--language', type=int, multiple=True, default=None,
               help="Consider only this language (can be supplied multiple times).")
 @click.option('--batch-size', type=int, default=None,
-              help="")
+              help="Split into batches of this size.")
 @click.option('--start-batch', type=int, default=0,
-              help="")
+              help="Ignore all batches before start-batch.")
 @click.option('--num-batches', type=int, default=None,
-              help="")
+              help="Create at most num-batches.")
+@click.option('--exclude-tsv', type=click.Path(exists=True), multiple=True, default=None,
+              help="Exclude the files listed in this TSV file. Can be supplied multiple times")
 def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                year, start_year, stop_year,
                month, start_month, stop_month,
                day, start_day, stop_day,
                issue, start_issue, stop_issue,
                page, start_page, stop_page,
-               language, batch_size, start_batch, num_batches):
+               language, batch_size, start_batch, num_batches, ):
+    """
+    SCAN_IMAGES_FILE: A TSV file containing of list of all ZEFYS page scan image files that are to be considered.
+    (see zefys-scanner)
+    """
 
     df_files = pd.read_csv(scan_images_file, sep='\t', low_memory=False)
 
