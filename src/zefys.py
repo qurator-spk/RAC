@@ -18,6 +18,14 @@ from parallel import run as prun
 
 from pathlib import Path
 
+from somajo import SoMaJo, Tokenizer, SentenceSplitter
+
+from sentence_transformers import SentenceTransformer
+
+from transformers import AutoTokenizer
+
+from multiprocessing import Semaphore
+
 
 def apply_filter(df, column_name, values, start, stop):
     if start is not None and stop is not None:
@@ -188,6 +196,7 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
 
     pass
 
+
 def setup_ocr_database(conn):
     conn.execute('BEGIN EXCLUSIVE TRANSACTION')
 
@@ -243,6 +252,7 @@ class UnzipTask:
             return None
 
         return self._target_file
+
 
 @click.command()
 @click.argument('sqlite-file', type=click.Path(exists=True))
@@ -395,8 +405,8 @@ def create_ocr_database(directory, sqlite_file, pattern, follow_symlinks, subset
             if xfile is None or xml_data is None:
                 continue
 
-            assert (file==xfile)
+            assert (file == xfile)
 
             con.execute('INSERT INTO ocr(zdb_id, year, month, day, issue, page, file, xml_data) '
-                         'VALUES(?,?,?,?,?,?,?,?)',
-                         (zdb_id, year, month, day, issue, page, file, sqlite3.Binary(xml_data.read())))
+                        'VALUES(?,?,?,?,?,?,?,?)',
+                        (zdb_id, year, month, day, issue, page, file, sqlite3.Binary(xml_data.read())))

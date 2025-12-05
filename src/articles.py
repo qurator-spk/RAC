@@ -14,7 +14,7 @@ from tqdm import tqdm
 from zefys import UnzipTask
 from parallel import run as prun
 
-from zdb import get_zdb_meta_data, get_zdb_meta_dummy
+from zdb import get_zdb_meta_data  # , get_zdb_meta_dummy
 from zefys import apply_filter
 
 
@@ -30,6 +30,7 @@ def page_get_reading_order(root):
 
     return pd.DataFrame(order, columns=["pos", "region_ref"])
 
+
 def page_iterate_text_regions(root):
 
     for region_elem in root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}TextRegion'):
@@ -39,11 +40,13 @@ def page_iterate_text_regions(root):
 
         yield the_id, the_type, region_elem
 
+
 def page_iterate_text_lines(root):
 
     for line_elem in root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}TextLine'):
 
         yield line_elem
+
 
 def page_iterate_coords(root):
 
@@ -53,6 +56,7 @@ def page_iterate_coords(root):
 
         yield points
 
+
 def page_iterate_unicode(root):
 
     for text_elem in root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}Unicode'):
@@ -61,6 +65,7 @@ def page_iterate_unicode(root):
             continue
 
         yield text_elem.text
+
 
 class ExtractRegionsTask:
 
@@ -85,12 +90,14 @@ class ExtractRegionsTask:
             print(e)
             return None, None
 
+
 class NextIssue:
     def __init__(self, meta):
         self._meta = meta
 
     def __call__(self, *args, **kwargs):
         return "NextIssue", self._meta
+
 
 def extract_regions(page_xml_file, page):
 
@@ -315,7 +322,6 @@ def setup_article_database(conn):
     conn.execute('CREATE INDEX IF NOT EXISTS idx_issue_all_pages ON articles(zdb_id, year, month, day, issue);')
     conn.execute('CREATE INDEX IF NOT EXISTS idx_zdb_id_year ON articles(zdb_id, year);')
 
-
     conn.execute('CREATE TABLE IF NOT EXISTS "regions" ('
                  '"index" INTEGER,  "type" TEXT,  "text" TEXT,  "page" INTEGER,  "min_x" INTEGER,  "min_y" INTEGER,  '
                  '"max_x" REAL,  "max_y" REAL,  "mean_center_x" REAL,  "mean_center_y" REAL,  "mean_width" REAL,  '
@@ -325,6 +331,7 @@ def setup_article_database(conn):
     conn.execute('CREATE INDEX IF NOT EXISTS "ix_regions_article_id" ON "regions" ("article_id");')
 
     conn.execute('COMMIT TRANSACTION')
+
 
 class IdentifyArticlesTask:
     def __init__(self, regions, zdb_id, year, month, day, issue, num_pages):
@@ -337,14 +344,15 @@ class IdentifyArticlesTask:
                                                     self._issue, self._num_pages)
         return regions, issue_articles
 
+
 def identify_articles(regions, zdb_id, year, month, day, issue, num_pages, strategy="type"):
 
     articles = []
     regions["article_id"] = 0
     regions["article_pos"] = 0
 
-    if strategy=="type":
-        article_id=0
+    if strategy == "type":
+        article_id = 0
         article_pos = 0
 
         start_page=None
@@ -503,9 +511,3 @@ def article_json_export(art_db_sqlite, json_file, json_single_line_file, zdb_jso
         with open(json_file, "w", encoding="utf-8") as a_file:
             # noinspection PyTypeChecker
             json.dump(json_articles, a_file, ensure_ascii=False, indent=3)
-
-
-@click.command()
-@click.argument('art-db-sqlite', type=click.Path(exists=True))
-def create_article_search_index():
-    pass
