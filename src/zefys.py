@@ -18,6 +18,8 @@ from parallel import run as prun
 
 from pathlib import Path
 
+from zdb import get_zdb_meta_data  # , get_zdb_meta_dummy
+
 from somajo import SoMaJo, Tokenizer, SentenceSplitter
 
 from sentence_transformers import SentenceTransformer
@@ -39,17 +41,58 @@ def apply_filter(df, column_name, values, start, stop):
 
 
 @click.command()
-@click.option('--zefys-filelist', type=str, default=None,help=""
-                                                              "Run in /nfs/zefys (takes roughly 24 hours!):         "
-                                                              "find ./ -wholename \"*/presentation/*.jpg\" "
-                                                              "   -o -wholename \"*/presentation/*.jpeg\""
-                                                              "   -o -wholename \"*/presentation/*.png\" > "
-                                                              "~/SPUNK/workbench/zefys_image_files.txt")
-def scanner(zefys_filelist):
+@click.argument('out-file', type=click.Path(exists=False))
+@click.option('--zefys-filelist', type=str,
+              default=None, help="Run in /nfs/zefys (takes roughly 24 hours!):         "
+                                 "find ./ -wholename \"*/presentation/*.jpg\" "
+                                 "   -o -wholename \"*/presentation/*.jpeg\""
+                                 "   -o -wholename \"*/presentation/*.png\" > "
+                                 "~/SPUNK/workbench/zefys_image_files.txt")
+def scanner(out_file, zefys_filelist):
     """
     :return:
     """
-    pass
+
+    df_all = pd.read_csv(zefys_filelist, header=None, names=["fullpath"])
+
+    # remove certain files since they are XML files but not of interest for our purposes
+    df = df_all.loc[~df_all.fullpath.str.startswith('./scandata')
+                    & ~df_all.fullpath.str.startswith('./_tosort')].copy()
+
+    df[['zdb', 'year', 'month', 'day', 'issue']] =\
+        df.fullpath.str.extract('./[publish/]*([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/.*')
+
+    df = df.dropna()
+
+    df[['zdb']] = df.zdb.str.extract('([^_]+).*')
+
+    df[['page', 'type']] = df.fullpath.str.extract('.*?([0-9]+).(png|jpg|jpeg|tif)$')
+
+    df.page = df.page.astype(int)
+
+    counter = dict()
+    for _, df_part in tqdm(df.groupby(['zdb', 'year', 'month', 'day', 'issue']), total=len(df)):
+        min_page = df_part.page.min()
+        if min_page not in counter:
+            counter[min_page] = 0
+
+        counter[min_page] += 1
+
+    df = df.loc[df.page > 0]
+
+    df.issue = df.issue.astype(int)
+
+    df_meta = get_zdb_meta_data(df)
+
+    df_meta.title = df_meta.title.str.extract('([^:]*).*?')
+
+    df_tmp = df_meta.merge(df, on='zdb')
+
+    df_tmp['url'] = "https://content.staatsbibliothek-berlin.de/zefys/SNP" + \
+                    df_tmp.zdb + "-" + df_tmp.year + df_tmp.month + df_tmp.day + "-" + \
+                    (df_tmp.issue - 1).astype(str) + "-" + df_tmp.page.astype(str) + "-0-0/full/full/0/default.jpg"
+
+    df_tmp.reset_index(drop=True).to_csv(out_file, sep='\t')
 
 
 @click.command()
@@ -128,7 +171,7 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
     df_files = apply_filter(df_files, "page", page, start_page, stop_page)
     df_files = apply_filter(df_files, "language", language, None, None)
 
-    if exclude_tsv is not None:
+    if exclude_tsv is not None and len(exclude_tsv) > 0:
         df_excl = []
         for tsv_file in exclude_tsv:
             df_excl.append(pd.read_csv(tsv_file, sep='\t', low_memory=False).rename(columns={"zdb_id": "zdb"}))
@@ -222,6 +265,7 @@ def setup_ocr_database(conn):
     conn.execute('CREATE INDEX IF NOT EXISTS idx_zdb_id_year ON ocr(zdb_id, year);')
 
     conn.execute('COMMIT TRANSACTION')
+
 
 class UnzipTask:
 
@@ -388,6 +432,7 @@ def create_ocr_database(directory, sqlite_file, pattern, follow_symlinks, subset
 
     page_xmls = pd.DataFrame(page_xmls, columns=['file', 'zdb_id', 'year', 'month', 'day', 'issue', 'page'])
 
+    # noinspection PyTypeChecker
     def get_zip_tasks():
         for _, (a_file,) in page_xmls[['file']].iterrows():
             yield ZipTask(a_file)

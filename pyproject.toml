@@ -35,6 +35,7 @@ zefys-emb-test = "embeddings:emb_test"
 zefys-create-index = "index:create_index"
 create-article-database = "articles:create_article_database"
 article-json-export = "articles:article_json_export"
+summary-test = "summary:sum_test"
 
 [project.urls]
 Homepage = "https://code.dev.sbb.berlin/idm4/SPUNK"

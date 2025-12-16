@@ -10,3 +10,7 @@ requests
 somajo
 transformers
 annoy
+Flask
+Flask-CacheControl
+flask-htpasswd
+gunicorn
