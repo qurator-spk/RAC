@@ -9,6 +9,7 @@ click
 requests
 somajo
 transformers
+sentence-transformers
 annoy
 Flask
 Flask-CacheControl
