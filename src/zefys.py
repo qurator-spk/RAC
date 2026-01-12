@@ -235,6 +235,7 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                 link_batch(df_files.iloc[b*batch_size:(b+1)*batch_size, :],
                            "{}batch-{}".format(target_path, b))
     else:
+        print("No zefys location (zefys-prefix) exit.")
         pass
 
     pass
@@ -455,3 +456,33 @@ def create_ocr_database(directory, sqlite_file, pattern, follow_symlinks, subset
             con.execute('INSERT INTO ocr(zdb_id, year, month, day, issue, page, file, xml_data) '
                         'VALUES(?,?,?,?,?,?,?,?)',
                         (zdb_id, year, month, day, issue, page, file, sqlite3.Binary(xml_data.read())))
+
+
+@click.command()
+@click.argument('target_sqlite', type=click.Path())
+@click.argument('source_sqlite', type=click.Path(exists=True), nargs=-1)
+def join_ocr_databases(target_sqlite, source_sqlite):
+
+    print("target: {}".format(target_sqlite))
+
+    with sqlite3.connect(target_sqlite) as tdb:
+        setup_ocr_database(tdb)
+
+        for sfile in source_sqlite:
+            print("source: {}".format(sfile))
+
+            with sqlite3.connect(sfile) as sdb:
+
+                num_ocr = sdb.execute('SELECT COUNT(*) from ocr').fetchone()[0]
+
+                cur = sdb.cursor()
+                cur.execute('SELECT * from ocr')
+
+                _cur_it = tqdm(cur, total=num_ocr)
+
+                for (aid, zdb_id, year, month, day, issue, page, file, xml_data) in _cur_it:
+
+                    tdb.execute('INSERT INTO ocr(zdb_id, year, month, day, issue, page, file, xml_data) '
+                                'VALUES(?,?,?,?,?,?,?,?)',
+                                (zdb_id, year, month, day, issue, page, file,
+                                 sqlite3.Binary(io.BytesIO(xml_data).read())))

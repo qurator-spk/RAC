@@ -364,13 +364,13 @@ def identify_articles(regions, zdb_id, year, month, day, issue, num_pages, strat
             if atype != "header" and atype != "paragraph":
                 continue
 
-            if prev_type == "paragraph" and atype=="header":
+            if prev_type == "paragraph" and atype == "header":
                 articles.append((zdb_id, year, month, day, issue, start_page, end_page, article_id, num_pages))
                 article_pos = 0
                 article_id += 1
                 start_page=None
 
-            prev_type=atype
+            prev_type = atype
             regions.loc[region_index, "article_id"] = article_id
             regions.loc[region_index, "article_pos"] = article_pos
             article_pos += 1
