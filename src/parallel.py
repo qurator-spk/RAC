@@ -77,9 +77,14 @@ def run_unordered(tasks, **kwargs):
     else:
         context = mp.get_context()
 
+    chunksize = []
+    if 'chunksize' in kwargs:
+        chunksize = [kwargs['chunksize']]
+        del kwargs['chunksize']
+
     with context.Pool(**kwargs) as pool:
 
-        for it, result in enumerate(pool.imap_unordered(_run, tasks)):
+        for it, result in enumerate(pool.imap_unordered(_run, tasks, *chunksize)):
 
             yield result
 

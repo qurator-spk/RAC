@@ -9,7 +9,7 @@ import sqlite3
 
 from pprint import pprint
 
-from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer, AutoModelForSeq2SeqLM, AutoConfig# , Mxfp4Config
 
 from summary_prompts import prompts, prompt_BASIC_1_S_EN
 
@@ -17,11 +17,72 @@ from zefys import apply_filter
 
 import torch
 
+from accelerate import Accelerator
+
+import bitsandbytes as bnb
+
+import requests
+
+from parallel import run_unordered as prun
+
+from multiprocessing import Manager
+
+class SummaryTask:
+
+    temperature = None
+    max_new_tokens = None
+    model = None
+    ollama_urls = None
+
+    def __init__(self, article_id, a_input, header):
+
+        self._article_id = article_id
+        self._a_input = a_input
+        self._header = header
+
+    def __call__(self, *args, **kwargs):
+
+        # noinspection PyBroadException
+        try:
+            ollama_request = \
+                {
+                "model": SummaryTask.model,
+                "prompt": self._a_input['content'],
+                "stream": False,
+                "temperature": 0.0 if SummaryTask.temperature is None else SummaryTask.temperature,
+                "max_tokens": SummaryTask.max_new_tokens
+                }
+
+            ollama_url = SummaryTask.ollama_urls.pop(0)
+
+            r = requests.post("{}/api/generate".format(ollama_url),
+                              headers={"Content-Type": "application/json"},
+                              json=ollama_request, timeout=None)
+
+            SummaryTask.ollama_urls.insert(0, ollama_url)
+
+            r.raise_for_status()  # raises on 4xx/5xx
+            data = r.json()
+            a_output = data["response"]
+
+            return self._article_id, a_output, self._header
+
+        except Exception as e:
+            print(e)
+            return self._article_id, None, self._header
+
+    @staticmethod
+    def initialize(temperature, max_new_tokens, model, ollama_urls):
+
+        SummaryTask.temperature = temperature
+        SummaryTask.max_new_tokens = max_new_tokens
+        SummaryTask.model = model
+        SummaryTask.ollama_urls = ollama_urls
 
 # noinspection PyTypeChecker
 @click.command()
 @click.argument('art-db-sqlite', type=click.Path(exists=True))
-@click.argument('model_dir', type=click.Path(exists=True))
+@click.argument('model', type=str)
 @click.option('--zdb-id', type=str, multiple=True, default=None,
               help="Consider only this ZDB-ID (can be supplied multiple times).")
 @click.option('--year', type=int, multiple=True, default=None,
@@ -62,40 +123,23 @@ import torch
                                                               "Default is deterministic generation.")
 @click.option('--random', is_flag=True, default=False, help="Specify this to randomly select articles f"
                                                             "or generation.")
-def compute_summaries(art_db_sqlite, model_dir, zdb_id, year, start_year, stop_year, month, start_month, stop_month,
+@click.option('--processes', type=int, default=10, help="Number of HTTP request processes.")
+@click.option('--ollama-url', type=str, multiple=True, default=None,
+              help="Ollama URL. Can be supplied multiple times. Example http://localhost:11434 .")
+def compute_summaries(art_db_sqlite, model, zdb_id, year, start_year, stop_year, month, start_month, stop_month,
                       day, start_day, stop_day, issue, start_issue, stop_issue, page, start_page, stop_page, prompt,
-                      max_new_tokens, temperature, random):
+                      max_new_tokens, temperature, random, processes, ollama_url):
 
-    # model_id = "openai/gpt-oss-20b"
-
-    model = AutoModelForCausalLM.from_pretrained(
-        model_dir,
-        dtype="auto",
-        device_map="cuda",
-        # Flash Attention with Sinks
-        # attn_implementation="kernels-community/vllm-flash-attn3",
-    )
-
-    tokenizer = AutoTokenizer.from_pretrained(model_dir)
-
-    summary_pipe = pipeline(
-        "text-generation",
-        model=model,
-        tokenizer=tokenizer,
-        dtype="auto",
-        device_map="cuda",
-    )
-
-    pfunc = prompts[prompt]
+    p_func = prompts[prompt]
 
     with sqlite3.connect(art_db_sqlite) as art_db:
         art_db.execute('BEGIN EXCLUSIVE TRANSACTION')
 
         art_db.execute('CREATE TABLE IF NOT EXISTS "summaries" '
-                       '("article_id" INTEGER, "prompt" TEXT, "model_dir" TEXT, "max_tokens" INTEGER, '
+                       '("article_id" INTEGER, "prompt" TEXT, "model" TEXT, "max_tokens" INTEGER, '
                        '"temperature" REAL, "summary" TEXT);')
 
-        art_db.execute('CREATE INDEX IF NOT EXISTS idx_summary ON summaries(article_id, prompt, model_dir, max_tokens,'
+        art_db.execute('CREATE INDEX IF NOT EXISTS idx_summary ON summaries(article_id, prompt, model, max_tokens,'
                        'temperature);')
 
         art_db.execute('COMMIT TRANSACTION')
@@ -122,60 +166,91 @@ def compute_summaries(art_db_sqlite, model_dir, zdb_id, year, start_year, stop_y
         if random:
             df_articles = df_articles.iloc[np.random.permutation(len(df_articles))].reset_index(drop=True)
 
-        for (_, (article_id, zdb_id, year, month, day, issue, start_page, num_pages)) \
-                in tqdm(df_articles.iterrows(), total=len(df_articles)):
+    df_articles = df_articles[["article_id"]]
 
-            df_summary = pd.read_sql("SELECT * from summaries "
-                                     "WHERE article_id=? AND prompt=? AND max_tokens=? AND model_dir=? "
-                                     "AND temperature=?",
-                                     params=(article_id, prompt, max_new_tokens, model_dir,
-                                             0.0 if temperature is None else temperature),
-                                     con=art_db)
+    with Manager() as mgr:
 
-            if len(df_summary) > 0:
+        url_queue = mgr.list()
+        url_queue.extend([u for _ in range(0, processes) for u in ollama_url])
+
+        def get_summary_tasks(articles):
+            seq = tqdm(articles.iterrows(), total=len(articles))
+
+            skipped=0
+            with sqlite3.connect(art_db_sqlite) as _art_db:
+
+                for  submitted, (_, (_article_id, )) in enumerate(seq):
+
+                    df_summary = pd.read_sql("SELECT * from summaries "
+                                             "WHERE article_id=? AND prompt=? AND max_tokens=? AND model=? "
+                                             "AND temperature=?",
+                                             params=(_article_id, prompt, max_new_tokens, model,
+                                                     0.0 if temperature is None else temperature),
+                                             con=_art_db)
+
+                    if len(df_summary) > 0:
+                        skipped += 1
+                        continue
+
+                    df_regions = pd.read_sql("SELECT type, text, article_pos FROM regions WHERE article_id=?", con=_art_db,
+                                             params=(_article_id,))
+
+                    _header = " ".join(df_regions.loc[df_regions.type == "header"]. \
+                                      sort_values(by="article_pos", ascending=True).text.tolist())
+
+                    text = " ".join(df_regions.loc[df_regions.type == "paragraph"]. \
+                                    sort_values(by="article_pos", ascending=True).text.tolist())
+
+                    if len(_header) > 0:
+                        article = "{}:\n{}".format(_header, text)
+                    else:
+                        article = text
+
+                    input_txt = p_func(article)
+
+                    seq.set_description("#url_queue:{}, #submitted:{}, #skipped:{} |".format(len(url_queue),
+                                                                                             submitted, skipped))
+                    yield SummaryTask(_article_id, input_txt, _header)
+
+        for article_id, summary, header in prun(get_summary_tasks(df_articles), chunksize=1,
+                                                initializer=SummaryTask.initialize,
+                                                initargs=(temperature, max_new_tokens, model, url_queue),
+                                                processes=processes):
+
+            # print("=====\n", "Überschrift: {}\n".format(header), "Zusammenfassung: {}\n".format(summary))
+
+            if summary is None:
                 continue
 
-            df_regions = pd.read_sql("SELECT type, text, article_pos FROM regions WHERE article_id=?", con=art_db,
-                                     params=(article_id,))
+            # continue
 
-            header = " ".join(df_regions.loc[df_regions.type == "header"].\
-                              sort_values(by="article_pos", ascending=True).text.tolist())
+            art_db.execute('BEGIN EXCLUSIVE TRANSACTION')
 
-            text = " ".join(df_regions.loc[df_regions.type == "paragraph"].\
-                            sort_values(by="article_pos", ascending=True).text.tolist())
+            art_db.execute('INSERT INTO summaries(article_id, prompt, model, max_tokens, temperature, summary)'
+                           ' VALUES(?,?,?,?,?,?)', (article_id, prompt, model, max_new_tokens,
+                                                    0.0 if temperature is None else temperature, summary))
+            art_db.execute('COMMIT TRANSACTION')
 
-            if len(header) > 0:
-                article = "{}:\n{}".format(header, text)
-            else:
-                article = text
 
-            input_txt = pfunc(article)
-
-            try:
-                outputs = summary_pipe(
-                    [input_txt],
-                    max_new_tokens=max_new_tokens,
-                    temperature=temperature,
-                    do_sample=False
-                )
-
-                # import ipdb;ipdb.set_trace()
-
-                summary = outputs[0]["generated_text"][-1]['content']
-                summary = re.sub("^final", "", summary)
-
-                art_db.execute('BEGIN EXCLUSIVE TRANSACTION')
-
-                art_db.execute('INSERT INTO summaries(article_id, prompt, model_dir, max_tokens, temperature, summary)'
-                               ' VALUES(?,?,?,?,?,?)', (article_id, prompt, model_dir, max_new_tokens,
-                                                        0.0 if temperature is None else temperature, summary))
-                art_db.execute('COMMIT TRANSACTION')
-            except:
-                print(article_id, len(article))
-                pass
-
-            torch.cuda.empty_cache()
-
+def apply_mxfp4_quantization(module):
+    for name, child in module.named_children():
+        if isinstance(child, torch.nn.Linear):
+            # replace with bitsandbytes Linear4bit
+            new_child = bnb.nn.Linear4bit(
+                child.in_features,
+                child.out_features,
+                bias=child.bias is not None,
+                device=child.weight.device,
+                dtype=child.weight.dtype,
+                quant_type="mxfp4",
+                compute_dtype=torch.float32  # activations stay FP32
+            )
+            new_child.weight.data = child.weight.data.clone()
+            if child.bias is not None:
+                new_child.bias.data = child.bias.data.clone()
+            setattr(module, name, new_child)
+        else:
+            apply_mxfp4_quantization(child)
 
 @click.command()
 @click.argument('model_dir', type=click.Path(exists=True))
