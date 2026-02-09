@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="default-config" version="1.7">
+
+    <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+    <uniqueKey>id</uniqueKey>
+    <field name="_version_" type="plong" indexed="true" stored="true" omitNorms="true" />
+    <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
+    
+    <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
+    <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" />
+
+    <!-- boolean type: "true" or "false" -->
+    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+    <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
+
+    <!--
+      Numeric field types that index values using KD-trees.
+      Point fields don't support FieldCache, so they must have docValues enabled if needed for sorting, faceting, functions, etc.
+      This is the default, so it does not need to be set explicitly.
+    -->
+    <fieldType name="pint" class="solr.IntPointField"/>
+    <fieldType name="pfloat" class="solr.FloatPointField"/>
+    <fieldType name="plong" class="solr.LongPointField"/>
+    <fieldType name="pdouble" class="solr.DoublePointField"/>
+
+    <fieldType name="pints" class="solr.IntPointField" multiValued="true"/>
+    <fieldType name="pfloats" class="solr.FloatPointField" multiValued="true"/>
+    <fieldType name="plongs" class="solr.LongPointField" multiValued="true"/>
+    <fieldType name="pdoubles" class="solr.DoublePointField" multiValued="true"/>
+    <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
+
+    <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
+         is a more restricted form of the canonical representation of dateTime
+         http://www.w3.org/TR/xmlschema-2/#dateTime
+         The trailing "Z" designates UTC time and is mandatory.
+         Optional fractional seconds are allowed: 1995-12-31T23:59:59.999Z
+         All other components are mandatory.
+
+         Expressions can also be used to denote calculations that should be
+         performed relative to "NOW" to determine the value, ie...
+
+               NOW/HOUR
+                  ... Round to the start of the current hour
+               NOW-1DAY
+                  ... Exactly 1 day prior to now
+               NOW/DAY+6MONTHS+3DAYS
+                  ... 6 months and 3 days in the future from the start of
+                      the current day
+
+      -->
+    <!-- KD-tree versions of date fields -->
+    <fieldType name="pdate" class="solr.DatePointField"/>
+    <fieldType name="pdates" class="solr.DatePointField" multiValued="true"/>
+
+    <fieldType name="text_general" class="solr.StrField" multiValued="true"/>
+
+    <fieldType name="dense_vector_128" class="solr.DenseVectorField" vectorDimension="128" similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="200">
+       <vectorIndex type="hnsw">
+          <param name="m" value="16"/>             <!--  more recall -->
+          <param name="efConstruction" value="200"/>    <!-- better graph, slower build -->
+       </vectorIndex>
+    </fieldType>
+
+    <field name="embedding" type="dense_vector_128" stored="false" indexed="true" multiValued="false" required="true"/>
+    <field name="article_id" type="pint" indexed="false" stored="true" multiValued="false" required="true" />
+    <field name="article_db" type="string" indexed="false" stored="true" multiValued="false" required="true" />
+    <field name="zdbid" type="string" indexed="true" stored="true" multiValued="false" required="true" />
+    <field name="publishing_date" type="pdate" indexed="true" stored="true" multiValued="false" required="true" />
+    <field name="year" type="pint" indexed="true" stored="true" multiValued="false" required="true" />
+    <field name="month" type="pint" indexed="true" stored="true" multiValued="false" required="true" />
+    <field name="day" type="pint" indexed="true" stored="true" multiValued="false" required="true" />
+    <field name="issue" type="pint" indexed="true" stored="true" multiValued="false" required="true" />
+    <!--<field name="page" type="pint" indexed="true" stored="true" multiValued="false" required="true" />-->
+
+</schema>
