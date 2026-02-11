@@ -1,0 +1,42 @@
+# docker-compose.yml  (version 3.8+)
+version: "3.8"
+
+services:
+  solr:
+    image: solr:latest   # pick whatever tag you need
+    container_name: solr
+    restart: unless-stopped
+    ports:
+      - "8983:8983"
+    # ------------------------------------------------------------------
+    #   Persist the whole SOLR_HOME so that every core, its config, and
+    #   its data are stored on the host.
+    #
+    #   Option A – bind‑mount to a host directory
+    #   -----------------------------------------
+    #   This keeps the data on a real path on your machine so you can
+    #   backup, inspect, or move it easily.
+    #
+    #   Option B – Docker named volume
+    #   --------------------------------
+    #   If you prefer Docker to hide the exact host location, use a
+    #   named volume instead.
+    # ------------------------------------------------------------------
+    volumes:
+      # Option A – bind‑mount (uncomment to use)
+      - ./solr_data:/var/solr/data   # host dir relative to compose file
+      - ./configsets:/opt/solr/server/solr/configsets
+
+      # Option B – named volume (uncomment to use)
+      #- solr_data:/opt/solr/server/solr
+
+        #environment:
+      # (optional) if you want Solr to write the index files to a
+      # separate directory inside SOLR_HOME
+      #- SOLR_DATA_HOME=/var/solr/data
+    environment:
+      - SOLR_JAVA_MEM=-Xms16g -Xmx16g          # JVM heap
+
+# volumes:
+  # Uncomment only if you’re using the named‑volume option above
+  # solr_data:

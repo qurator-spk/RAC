@@ -162,7 +162,7 @@ def create_embeddings(art_db_sqlite, emb_db_sqlite, model_dir, processes, max_to
     # noinspection PyShadowingNames
     def iterate_batches():
         batch_text = []
-        batch_inputs = []
+        # batch_inputs = []
         batch_article_ids = []
         for article_id, title, bucket_text, bucket_inputs in iterate_article_buckets():
             if len(batch_text) < batch_size:
@@ -172,7 +172,7 @@ def create_embeddings(art_db_sqlite, emb_db_sqlite, model_dir, processes, max_to
             else:
                 yield batch_article_ids, batch_text
                 batch_text = []
-                batch_inputs = []
+                # batch_inputs = []
                 batch_article_ids = []
 
     model = SentenceTransformer(model_dir)
