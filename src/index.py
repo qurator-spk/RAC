@@ -161,9 +161,17 @@ def create_annoy_index(emb_db_sqlite, dist_measure, n_trees, shard, embedding_di
 @click.option('--model-dir', type=click.Path(exists=True), default="None")
 @click.option('--query-text', type=str, default=None,
               help="Use first N dimensions of embeddings. Default 128.")
-@click.option('--embedding-dim', type=int, default=128,
+@click.option('--embedding-dim', type=click.Choice([128, 256, 512, 768]), default=128,
               help="Use first N dimensions of embeddings. Default 128.")
-def query_solr_index(art_db_sqlite, solr_core_url, model_dir, query_text, embedding_dim):
+@click.option('--hnsw-beam-width', type=click.Choice([16,32,64]), default=16,
+              help="")
+@click.option('--hnsw-max-connections', type=click.Choice([100,200,400]), default=100,
+              help="")
+@click.option('--collation-mode', type=click.Choice(['raw', 'mean', 'max', 'min', 'absminmax']),
+              default='mean',
+              help="How to collate multiple embeddings of longer texts. Default: raw => do not collate at all.")
+def query_solr_index(art_db_sqlite, solr_core_url, model_dir, query_text, embedding_dim,
+                     hnsw_beam_width, hnsw_max_connections, collation_mode):
 
     k=10
 
@@ -172,6 +180,12 @@ def query_solr_index(art_db_sqlite, solr_core_url, model_dir, query_text, embedd
             # "sort": "desc",
             "limit": k
         }
+
+    embedding_field = \
+        "embedding_{}_vec_{}_mc{}_bw{}".format(collation_mode, int(embedding_dim),
+                                               int(hnsw_beam_width), int(hnsw_max_connections))
+
+    print(embedding_field)
 
     if query_text is not None and model_dir is not None:
 
@@ -192,7 +206,7 @@ def query_solr_index(art_db_sqlite, solr_core_url, model_dir, query_text, embedd
             {
                 "knn":
                     {
-                        "f": "embedding",
+                        "f": embedding_field,
                         "v": "[{}]".format(",".join(embeddings)),
                         "k": k
                     }
@@ -228,7 +242,7 @@ def query_solr_index(art_db_sqlite, solr_core_url, model_dir, query_text, embedd
 
     #query["sort"] = ["year desc"]
 
-    query["filter"] = ["year:1907"]
+    # query["filter"] = ["year:1907"]
 
     # r = requests.post(solr_core_url + "/query?q=*:*&q.op=OR&indent=true&json={}".format(),
     #                   headers={"Content-Type": "application/json"},
@@ -242,7 +256,7 @@ def query_solr_index(art_db_sqlite, solr_core_url, model_dir, query_text, embedd
 
     # import ipdb;ipdb.set_trace()
 
-    response = solr.search(q='*:*', json=json.dumps(query), fl="*,score", sort="score asc")
+    response = solr.search(q='*:*', json=json.dumps(query), fl="*,score", sort="score desc")
 
     # import ipdb;ipdb.set_trace()
 
@@ -266,12 +280,12 @@ class ArticleIndexTask:
 
     emb_db=None
 
-    def __init__(self, article_id, embedding_dim):
+    def __init__(self, article_id, embedding_dim, collation_mode):
 
         self._article_id = article_id
         self._embedding_dim = embedding_dim
         #self._mode = "mean"
-        self._mode = "raw"
+        self._mode = collation_mode
 
     def __call__(self, *args, **kwargs):
         tmp = pd.read_sql("SELECT article_id, embedding FROM embeddings WHERE article_id=?",
@@ -287,12 +301,54 @@ class ArticleIndexTask:
 
         # import ipdb;ipdb.set_trace()
 
-        if self._mode == "mean":
-            vec = embeddings.mean().iloc[0:self._embedding_dim]
-        else:
-            vec = embeddings.iloc[:, 0:self._embedding_dim]
+        if len(embeddings) < 1:
+            return self._article_id, None
 
-        return self._article_id, vec
+        result = {}
+
+        for mode in self._mode:
+
+            if mode == "mean":
+                vec = embeddings.mean() #.iloc[0:self._embedding_dim]
+
+                vec = pd.DataFrame(vec).T
+
+            elif mode == "max":
+                vec = embeddings.max() #.iloc[0:self._embedding_dim]
+
+                vec = pd.DataFrame(vec).T
+
+            elif mode == "min":
+                vec = embeddings.min() #.iloc[0:self._embedding_dim]
+
+                vec = pd.DataFrame(vec).T
+
+            elif mode == "absminmax":
+                if len(embeddings) > 1:
+                    #embeddings = embeddings.iloc[:, 0:self._embedding_dim]
+
+                    emb_abs = embeddings.abs()
+
+                    sgn = np.sign(embeddings)
+
+                    abs_idx = emb_abs.idxmax()
+
+                    sgn = pd.DataFrame([sgn.iloc[r, c] for c, r in enumerate(abs_idx.tolist())])
+
+                    vec  = pd.DataFrame(emb_abs.max() * sgn.T)
+                    #import ipdb;ipdb.set_trace()
+                else:
+                    vec = pd.DataFrame(embeddings.max()).T  #.iloc[0:self._embedding_dim]).T
+                    #import ipdb;ipdb.set_trace()
+
+            elif mode == "raw":
+                vec = embeddings # .iloc[:, 0:self._embedding_dim]
+            else:
+                raise RuntimeError("Unknown collation-mode: {}".format(self._mode))
+
+            result[mode] = vec
+
+        return self._article_id, result
 
     @staticmethod
     def initialize(emb_db_sqlite):
@@ -301,8 +357,14 @@ class ArticleIndexTask:
 @click.command()
 @click.argument('emb-db-sqlite', type=click.Path(exists=True))
 @click.argument('solr-core-url', type=str)
-@click.option('--embedding-dim', type=int, default=128,
-              help="Use first N dimensions of embeddings. Default 128.")
+@click.option('--embedding-dim', type=click.Choice([128, 256, 512, 768]), default=128,
+              help="Use first N dimensions of embeddings. Default 128.", multiple=True)
+@click.option('--hnsw-beam-width', type=click.Choice([16,32,64]), default=16,
+              help="", multiple=True)
+@click.option('--hnsw-max-connections', type=click.Choice([100,200,400]), default=100,
+              help="", multiple=True)
+@click.option('--collation-mode', type=click.Choice(['raw', 'mean', 'max', 'min', 'absminmax']), default='raw',
+              help="How to collate multiple embeddings of longer texts. Default: raw => do not collate at all.", multiple=True)
 @click.option('--stop-at', type=int, default=None,
               help="Process only the first N embeddings. Default: Process all.")
 @click.option('--skip-first', type=int, default=None,
@@ -311,7 +373,8 @@ class ArticleIndexTask:
               help="Commit in chunks of size N to solr. Default 100000.")
 @click.option('--processes', type=int, default=10,
               help="Number of concurrent data feeder processes. Default 10.")
-def create_solr_index(emb_db_sqlite, solr_core_url, embedding_dim, stop_at, skip_first, chunk_size, processes):
+def create_solr_index(emb_db_sqlite, solr_core_url, embedding_dim, hnsw_beam_width, hnsw_max_connections,
+                      collation_mode, stop_at, skip_first, chunk_size, processes):
     """
     EMB_DB_SQLITE: sqlite database that holds the embeddings to be imported.
     SOLR_CORE_URL: Example: http://localhost:8983/solr/test .
@@ -329,7 +392,7 @@ def create_solr_index(emb_db_sqlite, solr_core_url, embedding_dim, stop_at, skip
     # noinspection PyShadowingNames
     def get_article_tasks():
         for aid, _ in tqdm(articles.iterrows(), total=len(articles), desc="data loading", leave=False):
-            yield ArticleIndexTask(aid, embedding_dim)
+            yield ArticleIndexTask(aid, embedding_dim, collation_mode)
 
     update_url = "{}/update?commit=true".format(solr_core_url)
 
@@ -361,41 +424,64 @@ def create_solr_index(emb_db_sqlite, solr_core_url, embedding_dim, stop_at, skip
             print(_e)
             raise _e
 
+    # noinspection PyShadowingNames
+    def iterate_knn_params():
+        for mode in collation_mode:
+            for emb_dim in embedding_dim:
+                for beam_width in hnsw_beam_width:
+                    for max_connections in hnsw_max_connections:
+                        yield mode, emb_dim, beam_width, max_connections
+
     json_data = []
-    for num, (aid, vec) in seq:
+
+    chunk_size = stop_at if stop_at is not None and chunk_size > stop_at else chunk_size
+
+    for num, (aid, result) in seq:
+
+        if result is None: # There are some articles that do not have text (only header) vice versa.
+            continue            # Submitting them would cause a solr exception since the embeddings field is required.
 
         if stop_at is not None and num_vec >= stop_at:
             break
 
-        if skip_first is not None and num_vec + len(vec) < skip_first:
-            continue
-
-        num_vec += len(vec)
-
         ainfo = articles.loc[aid]
-
-        if len(vec) < 1: # There are some articles that do not have text (only header) vice versa.
-            continue            # Submitting them would cause a solr exception since the embeddings field is required.
 
         #Example: 1995-12-31T23:59:59
         publishing_date = "{}-{}-{}T01:01:01".format(ainfo.year, ainfo.month, ainfo.day)
 
-        for row_id, row in vec.iterrows():
-            # import ipdb;ipdb.set_trace()
+        new_json_items = {}
 
-            json_item = \
-                {
-                    "id": str(aid)+"-"+str(row_id),
-                    "article_id" : int(aid),
-                    "article_db" : article_db_file,
-                    "zdbid" : ainfo.zdb_id,
-                    "year": int(ainfo.year),
-                    "month": int(ainfo.month),
-                    "day": int(ainfo.day),
-                    "issue": int(ainfo.issue),
-                    "embedding": row.tolist(),
-                    "publishing_date": publishing_date
-                }
+        for mode, emb_dim, beam_width, max_connections in iterate_knn_params():
+            vec = result[mode]
+
+            embedding_field = \
+                "embedding_{}_vec_{}_mc{}_bw{}".format(mode, int(emb_dim),
+                                                       int(beam_width), int(max_connections))
+            for row_id, row in vec.iterrows():
+                # import ipdb;ipdb.set_trace()
+
+                the_id = str(aid)+"-"+str(row_id)
+
+                if the_id in new_json_items:
+                    new_json_items[the_id][embedding_field] = row.tolist()[0:emb_dim]
+                else:
+                    new_json_items[the_id] =\
+                        {
+                            "id": the_id,
+                            "article_id" : int(aid),
+                            "article_db" : article_db_file,
+                            "zdbid" : ainfo.zdb_id,
+                            "year": int(ainfo.year),
+                            "month": int(ainfo.month),
+                            "day": int(ainfo.day),
+                            "issue": int(ainfo.issue),
+                            embedding_field: row.tolist()[0:emb_dim],
+                            "publishing_date": publishing_date
+                        }
+
+            #import ipdb;
+            #ipdb.set_trace()
+        for _,json_item in new_json_items.items():
             json_data.append(json_item)
 
         seq.set_description("Chunk #{}: {}".format(num_chunk, len(json_data)))
@@ -404,8 +490,15 @@ def create_solr_index(emb_db_sqlite, solr_core_url, embedding_dim, stop_at, skip
             continue
 
         try:
+            if skip_first is not None and num_vec + len(json_data) < skip_first:
+                num_vec += len(json_data)
+                json_data = []
+                continue
+
             commit_chunk(json_data)
+            num_vec += len(json_data)
             json_data = []
+
         except Exception as e:
             break
 

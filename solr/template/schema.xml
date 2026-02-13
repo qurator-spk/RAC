@@ -56,14 +56,195 @@
 
     <fieldType name="text_general" class="solr.StrField" multiValued="true"/>
 
-    <fieldType name="dense_vector_128" class="solr.DenseVectorField" vectorDimension="128" similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="200">
-       <vectorIndex type="hnsw">
-          <param name="m" value="16"/>             <!--  more recall -->
-          <param name="efConstruction" value="200"/>    <!-- better graph, slower build -->
-       </vectorIndex>
-    </fieldType>
+    <!-- ********************* -->
 
-    <field name="embedding" type="dense_vector_128" stored="false" indexed="true" multiValued="false" required="true"/>
+    <fieldType name="dense_vector_128_mc16_bw100" class="solr.DenseVectorField" vectorDimension="128"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="100"/>
+
+    <fieldType name="dense_vector_128_mc32_bw100" class="solr.DenseVectorField" vectorDimension="128"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="100"/>
+
+    <fieldType name="dense_vector_128_mc64_bw100" class="solr.DenseVectorField" vectorDimension="128"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="100"/>
+
+    <dynamicField name="*_vec_128_mc16_bw100"   type="dense_vector_128_mc16_bw100"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_128_mc32_bw100"   type="dense_vector_128_mc32_bw100"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_128_mc64_bw100"   type="dense_vector_128_mc64_bw100"  indexed="true"  stored="false" required="false"/>
+
+    <!-- ***** -->
+
+    <fieldType name="dense_vector_128_mc16_bw200" class="solr.DenseVectorField" vectorDimension="128"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="200"/>
+
+    <fieldType name="dense_vector_128_mc32_bw200" class="solr.DenseVectorField" vectorDimension="128"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="200"/>
+
+    <fieldType name="dense_vector_128_mc64_bw200" class="solr.DenseVectorField" vectorDimension="128"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="200"/>
+
+    <dynamicField name="*_vec_128_mc16_bw200"   type="dense_vector_128_mc16_bw200"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_128_mc32_bw200"   type="dense_vector_128_mc32_bw200"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_128_mc64_bw200"   type="dense_vector_128_mc64_bw200"  indexed="true"  stored="false" required="false"/>
+
+    <!-- ***** -->
+
+    <fieldType name="dense_vector_128_mc16_bw400" class="solr.DenseVectorField" vectorDimension="128"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="400"/>
+
+    <fieldType name="dense_vector_128_mc32_bw400" class="solr.DenseVectorField" vectorDimension="128"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="400"/>
+
+    <fieldType name="dense_vector_128_mc64_bw400" class="solr.DenseVectorField" vectorDimension="128"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="400"/>
+
+    <dynamicField name="*_vec_128_mc16_bw400"   type="dense_vector_128_mc16_bw400"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_128_mc32_bw400"   type="dense_vector_128_mc32_bw400"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_128_mc64_bw400"   type="dense_vector_128_mc64_bw400"  indexed="true"  stored="false" required="false"/>
+
+<!-- ********************* -->
+
+    <fieldType name="dense_vector_256_mc16_bw100" class="solr.DenseVectorField" vectorDimension="256"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="100"/>
+
+    <fieldType name="dense_vector_256_mc32_bw100" class="solr.DenseVectorField" vectorDimension="256"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="100"/>
+
+    <fieldType name="dense_vector_256_mc64_bw100" class="solr.DenseVectorField" vectorDimension="256"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="100"/>
+
+    <dynamicField name="*_vec_256_mc16_bw100"   type="dense_vector_256_mc16_bw100"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_256_mc32_bw100"   type="dense_vector_256_mc32_bw100"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_256_mc64_bw100"   type="dense_vector_256_mc64_bw100"  indexed="true"  stored="false" required="false"/>
+
+    <!-- ***** -->
+
+    <fieldType name="dense_vector_256_mc16_bw200" class="solr.DenseVectorField" vectorDimension="256"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="200"/>
+
+    <fieldType name="dense_vector_256_mc32_bw200" class="solr.DenseVectorField" vectorDimension="256"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="200"/>
+
+    <fieldType name="dense_vector_256_mc64_bw200" class="solr.DenseVectorField" vectorDimension="256"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="200"/>
+
+    <dynamicField name="*_vec_256_mc16_bw200"   type="dense_vector_256_mc16_bw200"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_256_mc32_bw200"   type="dense_vector_256_mc32_bw200"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_256_mc64_bw200"   type="dense_vector_256_mc64_bw200"  indexed="true"  stored="false" required="false"/>
+
+    <!-- ***** -->
+
+    <fieldType name="dense_vector_256_mc16_bw400" class="solr.DenseVectorField" vectorDimension="256"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="400"/>
+
+    <fieldType name="dense_vector_256_mc32_bw400" class="solr.DenseVectorField" vectorDimension="256"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="400"/>
+
+    <fieldType name="dense_vector_256_mc64_bw400" class="solr.DenseVectorField" vectorDimension="256"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="400"/>
+
+    <dynamicField name="*_vec_256_mc16_bw400"   type="dense_vector_256_mc16_bw400"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_256_mc32_bw400"   type="dense_vector_256_mc32_bw400"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_256_mc64_bw400"   type="dense_vector_256_mc64_bw400"  indexed="true"  stored="false" required="false"/>
+
+<!-- ********************* -->
+
+    <fieldType name="dense_vector_512_mc16_bw100" class="solr.DenseVectorField" vectorDimension="512"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="100"/>
+
+    <fieldType name="dense_vector_512_mc32_bw100" class="solr.DenseVectorField" vectorDimension="512"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="100"/>
+
+    <fieldType name="dense_vector_512_mc64_bw100" class="solr.DenseVectorField" vectorDimension="512"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="100"/>
+
+    <dynamicField name="*_vec_512_mc16_bw100"   type="dense_vector_512_mc16_bw100"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_512_mc32_bw100"   type="dense_vector_512_mc32_bw100"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_512_mc64_bw100"   type="dense_vector_512_mc64_bw100"  indexed="true"  stored="false" required="false"/>
+
+    <!-- ***** -->
+
+    <fieldType name="dense_vector_512_mc16_bw200" class="solr.DenseVectorField" vectorDimension="512"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="200"/>
+
+    <fieldType name="dense_vector_512_mc32_bw200" class="solr.DenseVectorField" vectorDimension="512"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="200"/>
+
+    <fieldType name="dense_vector_512_mc64_bw200" class="solr.DenseVectorField" vectorDimension="512"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="200"/>
+
+    <dynamicField name="*_vec_512_mc16_bw200"   type="dense_vector_512_mc16_bw200"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_512_mc32_bw200"   type="dense_vector_512_mc32_bw200"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_512_mc64_bw200"   type="dense_vector_512_mc64_bw200"  indexed="true"  stored="false" required="false"/>
+
+    <!-- ***** -->
+
+    <fieldType name="dense_vector_512_mc16_bw400" class="solr.DenseVectorField" vectorDimension="512"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="400"/>
+
+    <fieldType name="dense_vector_512_mc32_bw400" class="solr.DenseVectorField" vectorDimension="512"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="400"/>
+
+    <fieldType name="dense_vector_512_mc64_bw400" class="solr.DenseVectorField" vectorDimension="512"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="400"/>
+
+    <dynamicField name="*_vec_512_mc16_bw400"   type="dense_vector_512_mc16_bw400"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_512_mc32_bw400"   type="dense_vector_512_mc32_bw400"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_512_mc64_bw400"   type="dense_vector_512_mc64_bw400"  indexed="true"  stored="false" required="false"/>
+    
+    <!-- ********************* -->
+
+    <fieldType name="dense_vector_768_mc16_bw100" class="solr.DenseVectorField" vectorDimension="768"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="100"/>
+
+    <fieldType name="dense_vector_768_mc32_bw100" class="solr.DenseVectorField" vectorDimension="768"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="100"/>
+
+    <fieldType name="dense_vector_768_mc64_bw100" class="solr.DenseVectorField" vectorDimension="768"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="100"/>
+
+    <dynamicField name="*_vec_768_mc16_bw100"   type="dense_vector_768_mc16_bw100"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_768_mc32_bw100"   type="dense_vector_768_mc32_bw100"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_768_mc64_bw100"   type="dense_vector_768_mc64_bw100"  indexed="true"  stored="false" required="false"/>
+
+    <!-- ***** -->
+
+    <fieldType name="dense_vector_768_mc16_bw200" class="solr.DenseVectorField" vectorDimension="768"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="200"/>
+
+    <fieldType name="dense_vector_768_mc32_bw200" class="solr.DenseVectorField" vectorDimension="768"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="200"/>
+
+    <fieldType name="dense_vector_768_mc64_bw200" class="solr.DenseVectorField" vectorDimension="768"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="200"/>
+
+    <dynamicField name="*_vec_768_mc16_bw200"   type="dense_vector_768_mc16_bw200"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_768_mc32_bw200"   type="dense_vector_768_mc32_bw200"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_768_mc64_bw200"   type="dense_vector_768_mc64_bw200"  indexed="true"  stored="false" required="false"/>
+
+    <!-- ***** -->
+
+    <fieldType name="dense_vector_768_mc16_bw400" class="solr.DenseVectorField" vectorDimension="768"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="16" hnswBeamWidth="400"/>
+
+    <fieldType name="dense_vector_768_mc32_bw400" class="solr.DenseVectorField" vectorDimension="768"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="400"/>
+
+    <fieldType name="dense_vector_768_mc64_bw400" class="solr.DenseVectorField" vectorDimension="768"
+               similarityFunction="cosine" required="true"  knnAlgorithm="hnsw" hnswMaxConnections="64" hnswBeamWidth="400"/>
+
+    <dynamicField name="*_vec_768_mc16_bw400"   type="dense_vector_768_mc16_bw400"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_768_mc32_bw400"   type="dense_vector_768_mc32_bw400"  indexed="true"  stored="false" required="false"/>
+    <dynamicField name="*_vec_768_mc64_bw400"   type="dense_vector_768_mc64_bw400"  indexed="true"  stored="false" required="false"/>
+    
+    <!-- ***** -->
+
+    <fieldType name="dense_vector_128" class="solr.DenseVectorField" vectorDimension="128" similarityFunction="cosine"
+               required="true"  knnAlgorithm="hnsw" hnswMaxConnections="32" hnswBeamWidth="200"/>
+
+    <field name="embedding" type="dense_vector_128" stored="false" indexed="true" multiValued="false" required="false"/>
+
+    <!-- ***** -->
+
     <field name="article_id" type="pint" indexed="false" stored="true" multiValued="false" required="true" />
     <field name="article_db" type="string" indexed="false" stored="true" multiValued="false" required="true" />
     <field name="zdbid" type="string" indexed="true" stored="true" multiValued="false" required="true" />
