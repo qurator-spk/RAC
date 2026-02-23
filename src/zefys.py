@@ -6,6 +6,7 @@ import os
 import ipdb
 import numpy as np
 import pandas as pd
+from sympy.physics.vector.printing import params
 # from fontTools.ttLib.tables.S_V_G_ import doc_index_entry_format_0Size
 from tqdm import tqdm
 import re
@@ -13,6 +14,11 @@ import json
 from fnmatch import fnmatch
 import sqlite3
 import zipfile
+
+import requests
+
+from lxml import etree as ET
+import xml.etree.ElementTree as ElementTree
 
 from parallel import run as prun
 
@@ -270,12 +276,15 @@ def setup_ocr_database(conn):
 
 class UnzipTask:
 
-    def __init__(self, file, target_file, xml_data):
+    def __init__(self, file, target_file, xml_data, target_path=None, image_url=None):
 
         self._file = file
         self._target_file = target_file
         self._xml_data = xml_data
+        self._target_path = target_path
+        self._image_url = image_url
 
+    # noinspection PyUnreachableCode
     def __call__(self, *args, **kwargs):
 
         # noinspection PyBroadException
@@ -285,6 +294,22 @@ class UnzipTask:
             with zipfile.ZipFile(xml_data, mode="r", compression=zipfile.ZIP_BZIP2) as zf:
                 buffer = zf.read(name=self._file)
 
+            if self._target_path is not None and self._image_url is not None:
+
+                parser = ET.XMLParser(encoding='UTF-8')
+                tree = ElementTree.parse(io.BytesIO(buffer), parser=parser)
+                page = tree.find("{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}Page")
+
+                img_filename = os.path.basename(page.attrib['imageFilename'])
+
+                page.attrib['imageFilename'] = img_filename
+
+                img_data = requests.get(self._image_url).content
+                with open("{}/{}".format(self._target_path,img_filename), 'wb') as imf:
+                    imf.write(img_data)
+
+                buffer = ET.tostring(tree.getroot(), encoding='UTF-8')
+
             if type(self._target_file) == str:
                 with open(self._target_file, "wb") as tf:
                     tf.write(buffer)
@@ -293,7 +318,7 @@ class UnzipTask:
                 self._target_file.seek(0)
 
         except Exception as e:
-            print(e)
+            print(e, self._image_url)
             return None
 
         return self._target_file
@@ -315,19 +340,83 @@ def extract_filelist_ocr_database(sqlite_file, tsv_file_out):
 @click.option('--flat', type=bool, is_flag=True, default=False, help="Do not create a directory structure.")
 @click.option('--processes', type=int, default=None, help="Number of parallel processes to be used. "
                                                           "(default all cores)")
-def unpack_ocr_database(sqlite_file, flat, processes):
+@click.option('--download-images',
+              type=bool, is_flag=True, default=False, help="Download corresponding images from SBB content server."
+                                                           "BEWARE: USE WITH CARE!!!!!")
+@click.option('--zdb-id', type=str, multiple=True, default=None,
+              help="Consider only this ZDB-ID (can be supplied multiple times).")
+@click.option('--year', type=int, multiple=True, default=None,
+              help="Consider only this year (can be supplied multiple times).")
+@click.option('--start-year', type=int, default=None,
+              help="Consider a time interval [start-year, stop-year[")
+@click.option('--stop-year', type=int, default=None,
+              help="Consider a time interval [start-year, stop-year[")
+@click.option('--month', type=int, multiple=True, default=None,
+              help="Consider only this month (can be supplied multiple times).")
+@click.option('--start-month', type=int, default=None,
+              help="Consider a time interval [start-month, stop-month[")
+@click.option('--stop-month', type=int, default=None,
+              help="Consider a time interval [start-month, stop-month[")
+@click.option('--day', type=int, multiple=True, default=None,
+              help="Consider only this day (can be supplied multiple times).")
+@click.option('--start-day', type=int, default=None,
+              help="Consider a time interval [start-day, stop-day[")
+@click.option('--stop-day', type=int, default=None,
+              help="Consider a time interval [start-day, stop-day[")
+@click.option('--issue', type=int, multiple=True, default=None,
+              help="Consider only this issue (can be supplied multiple times).")
+@click.option('--start-issue', type=int, default=None,
+              help="Consider a time interval [start-issue, stop-issue[")
+@click.option('--stop-issue', type=int, default=None,
+              help="Consider a time interval [start-issue, stop-issue[")
+@click.option('--page', type=int, multiple=True, default=None,
+              help="Consider only this page (can be supplied multiple times).")
+@click.option('--start-page', type=int, default=None,
+              help="Consider a page interval [start-page, stop-page[")
+@click.option('--stop-page', type=int, default=None,
+              help="Consider a page interval [start-page, stop-page[")
+def unpack_ocr_database(sqlite_file, flat, processes, download_images,
+                        zdb_id, year, start_year, stop_year, month, start_month, stop_month,
+                        day, start_day, stop_day, issue, start_issue, stop_issue, page, start_page, stop_page):
         def get_unzip_tasks():
+            nonlocal zdb_id, year, month, day, issue, page
+
             with (sqlite3.connect(sqlite_file) as con):
-                cur = con.cursor()
-                cur.execute('SELECT * from ocr')
 
-                _cur_it = tqdm(cur)
+                page_xmls = pd.read_sql("SELECT rowid, file, zdb_id, year, month, day, issue, page FROM ocr",
+                                        con=con)
 
-                for (aid, zdb_id, year, month, day, issue, page, file, xml_data) in _cur_it:
+                page_xmls.year = page_xmls.year.astype(int)
+                page_xmls.month = page_xmls.month.astype(int)
+                page_xmls.day = page_xmls.day.astype(int)
+                page_xmls.issue = page_xmls.issue.astype(int)
+
+                print("Read {} entries from {} ...".format(len(page_xmls), sqlite_file))
+
+                page_xmls = apply_filter(page_xmls, "zdb_id", zdb_id, None, None)
+                page_xmls = apply_filter(page_xmls, "year", year, start_year, stop_year)
+                page_xmls = apply_filter(page_xmls, "month", month, start_month, stop_month)
+                page_xmls = apply_filter(page_xmls, "day", day, start_day, stop_day)
+                page_xmls = apply_filter(page_xmls, "issue", issue, start_issue, stop_issue)
+                page_xmls = apply_filter(page_xmls, "page", page, start_page, stop_page)
+
+                print("{} entries remain after filtering.".format(len(page_xmls)))
+
+                for _,(rowid, file, zdb_id, year, month, day, issue, page) in\
+                    tqdm(page_xmls.iterrows(), total=len(page_xmls)):
+
+                    data = pd.read_sql("SELECT xml_data FROM ocr WHERE rowid=?", con=con, params=(rowid,))
+
+                    if len(data) != 1:
+                        print("ERROR for rowid {}!".format(rowid))
+                        continue
+                    xml_data = data.iloc[0].xml_data
 
                     if flat:
                         target_file = "{}-{}-{}-{}-{}-{}.xml".format(zdb_id, year,
                                                                         month, day, issue, page)
+
+                        target_path = "./"
                     else:
 
                         target_path = "./{}/{}/{}/{}/{}".format(zdb_id, year, month, day, issue)
@@ -337,9 +426,14 @@ def unpack_ocr_database(sqlite_file, flat, processes):
                         target_file = "{}/{}-{}-{}-{}-{}-{}.xml".format(target_path, zdb_id, year,
                                                                         month, day, issue, page)
 
-                    # _cur_it.set_description(target_file +"\t\t\t\t")
+                    image_url = None
+                    if download_images:
+                        image_url =\
+                            ("https://content.staatsbibliothek-berlin.de/zefys/"
+                             "SNP{}-{}{:02d}{:02d}-{}-{}-0-0/full/full/0/default.jpg").\
+                                format(zdb_id, year, month, day, issue-1, page)
 
-                    yield UnzipTask(file, target_file, xml_data)
+                    yield UnzipTask(file, target_file, xml_data, target_path, image_url)
 
         for written_file in prun(get_unzip_tasks(), processes=processes):
             # print(written_file)
