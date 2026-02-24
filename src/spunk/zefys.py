@@ -396,32 +396,32 @@ def extract_filelist_ocr_database(sqlite_file, tsv_file_out):
 def unpack_ocr_database(sqlite_file, flat, processes, download_images, dry_run,
                         zdb_id, year, start_year, stop_year, month, start_month, stop_month,
                         day, start_day, stop_day, issue, start_issue, stop_issue, page, start_page, stop_page):
+    with (sqlite3.connect(sqlite_file) as con):
+
+        page_xmls = pd.read_sql("SELECT rowid, file, zdb_id, year, month, day, issue, page FROM ocr",
+                                con=con)
+
+        page_xmls.year = page_xmls.year.astype(int)
+        page_xmls.month = page_xmls.month.astype(int)
+        page_xmls.day = page_xmls.day.astype(int)
+        page_xmls.issue = page_xmls.issue.astype(int)
+
+        print("Read {} entries from {} ...".format(len(page_xmls), sqlite_file))
+
+        page_xmls = apply_filter(page_xmls, "zdb_id", zdb_id, None, None)
+        page_xmls = apply_filter(page_xmls, "year", year, start_year, stop_year)
+        page_xmls = apply_filter(page_xmls, "month", month, start_month, stop_month)
+        page_xmls = apply_filter(page_xmls, "day", day, start_day, stop_day)
+        page_xmls = apply_filter(page_xmls, "issue", issue, start_issue, stop_issue)
+        page_xmls = apply_filter(page_xmls, "page", page, start_page, stop_page)
+
+        print("{} entries remain after filtering.".format(len(page_xmls)))
+
+        if dry_run:
+            exit()
+
         def get_unzip_tasks():
-            nonlocal zdb_id, year, month, day, issue, page
-
             with (sqlite3.connect(sqlite_file) as con):
-
-                page_xmls = pd.read_sql("SELECT rowid, file, zdb_id, year, month, day, issue, page FROM ocr",
-                                        con=con)
-
-                page_xmls.year = page_xmls.year.astype(int)
-                page_xmls.month = page_xmls.month.astype(int)
-                page_xmls.day = page_xmls.day.astype(int)
-                page_xmls.issue = page_xmls.issue.astype(int)
-
-                print("Read {} entries from {} ...".format(len(page_xmls), sqlite_file))
-
-                page_xmls = apply_filter(page_xmls, "zdb_id", zdb_id, None, None)
-                page_xmls = apply_filter(page_xmls, "year", year, start_year, stop_year)
-                page_xmls = apply_filter(page_xmls, "month", month, start_month, stop_month)
-                page_xmls = apply_filter(page_xmls, "day", day, start_day, stop_day)
-                page_xmls = apply_filter(page_xmls, "issue", issue, start_issue, stop_issue)
-                page_xmls = apply_filter(page_xmls, "page", page, start_page, stop_page)
-
-                print("{} entries remain after filtering.".format(len(page_xmls)))
-
-                if dry_run:
-                    exit()
 
                 for _,(rowid, file, zdb_id, year, month, day, issue, page) in\
                     tqdm(page_xmls.iterrows(), total=len(page_xmls)):
