@@ -11,11 +11,11 @@ import xml.etree.ElementTree as ElementTree
 import json
 
 from tqdm import tqdm
-from zefys import UnzipTask
-from parallel import run as prun
+from .zefys import UnzipTask
+from .parallel import run as prun
 
-from zdb import get_zdb_meta_data  # , get_zdb_meta_dummy
-from zefys import apply_filter
+from .zdb import get_zdb_meta_data  # , get_zdb_meta_dummy
+from .zefys import apply_filter
 
 
 def page_get_reading_order(root):

@@ -14,7 +14,7 @@ from fnmatch import fnmatch
 import sqlite3
 import zipfile
 
-from parallel import run as prun
+from .parallel import run as prun
 
 from pathlib import Path
 
