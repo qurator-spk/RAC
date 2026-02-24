@@ -20,11 +20,11 @@ import requests
 from lxml import etree as ET
 import xml.etree.ElementTree as ElementTree
 
-from parallel import run as prun
+from spunk.parallel import run as prun
 
 from pathlib import Path
 
-from zdb import get_zdb_meta_data  # , get_zdb_meta_dummy
+from spunk.zdb import get_zdb_meta_data  # , get_zdb_meta_dummy
 
 from somajo import SoMaJo, Tokenizer, SentenceSplitter
 
