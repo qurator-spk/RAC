@@ -3,7 +3,7 @@ import io
 import click
 import os
 
-import ipdb
+# import ipdb
 import numpy as np
 import pandas as pd
 from sympy.physics.vector.printing import params
@@ -284,7 +284,6 @@ class UnzipTask:
         self._target_path = target_path
         self._image_url = image_url
 
-    # noinspection PyUnreachableCode
     def __call__(self, *args, **kwargs):
 
         # noinspection PyBroadException
@@ -299,12 +298,29 @@ class UnzipTask:
                 parser = ET.XMLParser(encoding='UTF-8')
                 tree = ElementTree.parse(io.BytesIO(buffer), parser=parser)
                 page = tree.find("{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}Page")
+                meta_data_creator = (
+                    tree.find("{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}Metadata/"
+                              "{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}Creator"))
 
                 img_filename = os.path.basename(page.attrib['imageFilename'])
+                img_width = page.attrib['imageWidth']
+                img_height = page.attrib['imageHeight']
+
+                #img_url = self._image_url.replace("__PAGE_SHAPE__", "{},{}".format(img_width, img_height))
+
+                img_url = self._image_url.replace("__PAGE_SHAPE__", "full")
+
+                neat_url = img_url.replace("__RECT__", "left,top,width,height")
+
+                img_url = img_url.replace("__RECT__", "full")
+
+                if meta_data_creator is not None:
+                    meta_data_creator.text = (meta_data_creator.text + "|IIIF_URL:" + img_url +
+                                              "|NEAT_URL:" + neat_url + "|")
 
                 page.attrib['imageFilename'] = img_filename
 
-                img_data = requests.get(self._image_url).content
+                img_data = requests.get(img_url).content
                 with open("{}/{}".format(self._target_path,img_filename), 'wb') as imf:
                     imf.write(img_data)
 
@@ -318,7 +334,8 @@ class UnzipTask:
                 self._target_file.seek(0)
 
         except Exception as e:
-            print(e, self._image_url)
+            print(e)
+            exit()
             return None
 
         return self._target_file
@@ -343,6 +360,7 @@ def extract_filelist_ocr_database(sqlite_file, tsv_file_out):
 @click.option('--download-images',
               type=bool, is_flag=True, default=False, help="Download corresponding images from SBB content server."
                                                            "BEWARE: USE WITH CARE!!!!!")
+@click.option('--dry-run', type=bool, is_flag=True, default=False, help="Do not actually unpack anything.")
 @click.option('--zdb-id', type=str, multiple=True, default=None,
               help="Consider only this ZDB-ID (can be supplied multiple times).")
 @click.option('--year', type=int, multiple=True, default=None,
@@ -375,7 +393,7 @@ def extract_filelist_ocr_database(sqlite_file, tsv_file_out):
               help="Consider a page interval [start-page, stop-page[")
 @click.option('--stop-page', type=int, default=None,
               help="Consider a page interval [start-page, stop-page[")
-def unpack_ocr_database(sqlite_file, flat, processes, download_images,
+def unpack_ocr_database(sqlite_file, flat, processes, download_images, dry_run,
                         zdb_id, year, start_year, stop_year, month, start_month, stop_month,
                         day, start_day, stop_day, issue, start_issue, stop_issue, page, start_page, stop_page):
         def get_unzip_tasks():
@@ -401,6 +419,9 @@ def unpack_ocr_database(sqlite_file, flat, processes, download_images,
                 page_xmls = apply_filter(page_xmls, "page", page, start_page, stop_page)
 
                 print("{} entries remain after filtering.".format(len(page_xmls)))
+
+                if dry_run:
+                    exit()
 
                 for _,(rowid, file, zdb_id, year, month, day, issue, page) in\
                     tqdm(page_xmls.iterrows(), total=len(page_xmls)):
@@ -430,7 +451,7 @@ def unpack_ocr_database(sqlite_file, flat, processes, download_images,
                     if download_images:
                         image_url =\
                             ("https://content.staatsbibliothek-berlin.de/zefys/"
-                             "SNP{}-{}{:02d}{:02d}-{}-{}-0-0/full/full/0/default.jpg").\
+                             "SNP{}-{}{:02d}{:02d}-{}-{}-0-0/__RECT__/__PAGE_SHAPE__/0/default.jpg").\
                                 format(zdb_id, year, month, day, issue-1, page)
 
                     yield UnzipTask(file, target_file, xml_data, target_path, image_url)
