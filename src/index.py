@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 import sqlite3
 
-from parallel import run as prun
+from .parallel import run as prun
 
 from annoy import AnnoyIndex
 

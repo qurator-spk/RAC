@@ -3,7 +3,7 @@ import io
 import click
 import os
 
-import ipdb
+# import ipdb
 import numpy as np
 import pandas as pd
 # from fontTools.ttLib.tables.S_V_G_ import doc_index_entry_format_0Size
@@ -14,7 +14,7 @@ from fnmatch import fnmatch
 import sqlite3
 import zipfile
 
-from parallel import run as prun
+from .parallel import run as prun
 
 from pathlib import Path
 

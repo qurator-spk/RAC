@@ -11,9 +11,9 @@ from pprint import pprint
 
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer, AutoModelForSeq2SeqLM, AutoConfig# , Mxfp4Config
 
-from summary_prompts import prompts, prompt_BASIC_1_S_EN
+from .summary_prompts import prompts, prompt_BASIC_1_S_EN
 
-from zefys import apply_filter
+from .zefys import apply_filter
 
 import torch
 
@@ -23,7 +23,7 @@ import bitsandbytes as bnb
 
 import requests
 
-from parallel import run_unordered as prun
+from .parallel import run_unordered as prun
 
 from multiprocessing import Manager
 
