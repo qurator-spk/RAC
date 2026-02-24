@@ -50,6 +50,7 @@ dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+namespaces = true
 
 [tool.setuptools.package-data]
 "*" = ["*.json", '*.yml', '*.xml', '*.xsd']
