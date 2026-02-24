@@ -1,5 +1,7 @@
 # (S)prach(U)nabhängiger (N)achrichten(K)osmos
 
+## Installation
+
 ## ZEFYS digitization statistics
 
 Preliminaries: /zefys/archive must be mounted to or point to b-isiprod-udl.pk.de:/ifs/data/SBB/archive/zefys .
