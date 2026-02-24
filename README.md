@@ -2,6 +2,27 @@
 
 ## Installation
 
+Required python version is 3.11. 
+Consider use of [pyenv](https://github.com/pyenv/pyenv) if that python version is not available on your system. 
+
+Activate virtual environment (virtualenv):
+```
+source venv/bin/activate
+```
+or (pyenv):
+```
+pyenv activate my-python-3.11-virtualenv
+```
+
+Update pip:
+```
+pip install -U pip
+```
+Install SPUNK:
+```
+pip install git+https://code.dev.sbb.berlin/idm4/SPUNK.git
+```
+
 ## ZEFYS digitization statistics
 
 Preliminaries: /zefys/archive must be mounted to or point to b-isiprod-udl.pk.de:/ifs/data/SBB/archive/zefys .
