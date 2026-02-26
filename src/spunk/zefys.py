@@ -291,7 +291,8 @@ class UnzipTask:
             xml_data = io.BytesIO(self._xml_data)
 
             with zipfile.ZipFile(xml_data, mode="r", compression=zipfile.ZIP_BZIP2) as zf:
-                buffer = zf.read(name=self._file)
+                assert len(zf.filelist) == 1
+                buffer = zf.read(name=zf.filelist[0].filename)
 
             if self._target_path is not None and self._image_url is not None:
 
