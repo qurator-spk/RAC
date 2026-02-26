@@ -12,8 +12,12 @@
 
 [SP-24353991-OCR-2.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-24353991-OCR-2.sqlite) (ca 38 GB)
 
-## Berliner Tageblatt und Handels-Zeitung (noch in Arbeit - aktuell)
+## Berliner Tageblatt und Handels-Zeitung (noch in Arbeit - aktuell 182448 Seiten)
 
 [SP-27646518-OCR-1.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-27646518-OCR-1.sqlite) (ca 19 GB)
-[SP-27646518-OCR-2.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-27646518-OCR-2.sqlite) (ca 19 GB)
 
+[SP-27646518-OCR-2.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-27646518-OCR-2.sqlite) (ca 16 GB)
+
+## Königsberger Hartungsche Zeitung (noch in Arbeit - aktuell 26988 Seiten)
+
+[SP-2812988X-OCR-1.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-2812988X-OCR-1.sqlite) (ca 5 GB)
