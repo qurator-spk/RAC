@@ -1,4 +1,10 @@
-# OCR 
+# OCR
+
+Im Rahmen von SPUNK wurde für einen Teil der ZEFYS-Digitalisate neue OCR erstellt.
+Hierzu wurde die in IDM4 seit Qurator entwickelte und im Rahmen von Mensch.Maschine.Kultur erweiterte und verbesserte 
+Layouterkennung und OCR [Eynollah](https://github.com/qurator-spk/eynollah) benutzt.
+
+Aktuell (Stand 26.2.2026) ist für ca 21% aller ZEFYS-Digitalisate neue state-of-the-art OCR entstanden:
 
 ## Alle Zeitungen in ZEFYS für die beiden Jahre 1907 und 1931 (171287 Seiten)
 [SP-1907-1931-OCR.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-1907-1931-OCR.sqlite) (ca 30 GB)
