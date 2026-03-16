@@ -1,5 +1,11 @@
 # (S)prach(U)nabhängiger (N)achrichten(K)osmos
 
+![greenland](doc/greenland.png) 
+
+![persil](doc/persil.png)
+
+---
+
 ## Installation
 
 Required python version is 3.11. 

@@ -136,8 +136,8 @@ def extract_regions(page_xml_file, page):
             min_x = min(min_x, np.min(x))
             min_y = min(min_y, np.min(y))
 
-            max_x = min(max_x, np.max(x))
-            max_y = min(max_y, np.max(y))
+            max_x = max(max_x, np.max(x))
+            max_y = max(max_y, np.max(y))
 
             count += 1
             mean_center_x += np.mean(x)

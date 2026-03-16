@@ -16,3 +16,4 @@ Flask-CacheControl
 flask-htpasswd
 gunicorn
 pysolr
+bcrypt==4.0.1

@@ -7,7 +7,7 @@ import os
 import numpy as np
 import pandas as pd
 from sympy.physics.vector.printing import params
-# from fontTools.ttLib.tables.S_V_G_ import doc_index_entry_format_0Size
+
 from tqdm import tqdm
 import re
 import json
