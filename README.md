@@ -4,6 +4,8 @@
 
 ![persil](doc/persil.png)
 
+![finnland](doc/finnland.png)
+
 ---
 
 ## Installation
