@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <script src="js/popper.min.js"></script>
+    <script src="js/jquery-3.4.1.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css" crossorigin="anonymous">
+
+    <style>
+        .fit-result-image{
+                max-height: 20vh;
+                width: auto;
+        }
+
+        .fit-image{
+            width: 100%;
+            object-fit: cover;
+        }
+
+        @media screen {
+            .fit-image1{
+                max-height: 20vh;
+                width: auto;
+            }
+        }
+        @media screen and (max-width : 600px) {
+            .fit-image1{
+                max-height: 20vh;
+                width: auto;
+            }
+        }
+    </style>
+    <title>ZEFYS</title>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center">
+                <h1>Sprachunabhängige Semantische Artikelsuche in ZEFYS</h1>
+            </div>
+            <div class="form-group mb-3 mt-3">
+                <select class="form-control" id="articles-select"></select>
+                <textarea class="form-control mt-1" id="search-for" rows="3" spellcheck="false"
+                          style="max-height: 5rem;min-height: 2rem;">
+                </textarea>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-4 text-center">
+            <div class="card" id="img-card">
+                <div class="card-header" id="headingImage">
+                    <h5 class="mb-0">
+                        <!--<button id="doc-list-heading" class="btn btn-link" aria-expanded="false">
+                            DFG-Viewer
+                        </button>-->
+
+                        <a href="" id="dfg-viewer" target="_blank" rel="noopener noreferrer">DFG-Viewer</a>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="card-body list-group" style="height: 64vh;overflow-y: scroll;">
+                        <img id="img-original" class="img-responsive fit-image" src=""> </img>
+                        <div id="image-info" class="d-none">
+                            <a href="" id="full-image-link" target="_blank" rel="noopener noreferrer"><small>full page</small> </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-8 text-center">
+            <div class="card" id="doc-card">
+                <div class="card-header" id="headingDocs">
+                    <h5 class="mb-0">
+                        <button id="doc-list-heading" class="btn btn-link" aria-expanded="false">
+                            Suchergebnisse <span id="result-info"></span>
+                        </button>
+                    </h5>
+                </div>
+                <ul class="card-body list-group" id="article-list" style="height: 64vh;overflow-y: scroll;">
+                    No content yet.
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/zefys.js"></script>
+</body>
+</html>
