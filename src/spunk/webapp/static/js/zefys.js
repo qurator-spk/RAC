@@ -47,12 +47,6 @@ function zefys_setup (configuration){
         let score_mean = Number(result.score_mean).toFixed(2);
         let score_std = Number(result.score_std).toFixed(3);
 
-        if (score_std < 0.01) {
-            $("#article-list").html("Anfrage zu unspezifisch.");
-            return;
-        }
-
-
         result.docs.forEach(
             function(article, idx) {
                 let upperbound = 0.9;
@@ -91,22 +85,51 @@ function zefys_setup (configuration){
                     articles_html += article_html;
             }
         );
-        $("#article-list").html(articles_html);
 
-        result.docs.forEach(
-                function(article) {
-                    $(`#article-list-item-${article.article_id}`).click(
-                        function() {
-                           $("#img-original").attr("src", article.url);
-                           $("#full-image-link").attr("href", article.full_image_url);
-                           $("#image-info").removeClass("d-none");
-                           $("#dfg-viewer").attr("href", article.dfg_viewer_url);
-                        }
-                    );
+        function show_results(result, articles_html, score_mean, score_std) {
+            $("#article-list").html(articles_html);
+
+            result.docs.forEach(
+                    function(article) {
+                        $(`#article-list-item-${article.article_id}`).click(
+                            function() {
+                               $("#img-original").attr("src", article.url);
+                               $("#full-image-link").attr("href", article.full_image_url);
+                               $("#image-info").removeClass("d-none");
+                               $("#dfg-viewer").attr("href", article.dfg_viewer_url);
+                            }
+                        );
+                    }
+                );
+
+            $("#result-info").html(`(${score_mean}\u00b1${score_std})`);
+        }
+
+        if (score_std < 0.01) {
+            let error_html =
+                `
+                    <p> Anfrage zu unspezifisch. </p>
+                    <p>
+                        <button id="show-anyway" class="btn btn-link" aria-expanded="false">
+                            Suchergebnisse trotzdem zeigen.
+                        </button>
+                    </p>
+                    <hr class="solid">
+                `;
+
+            $("#article-list").html(error_html);
+
+            $("#show-anyway").click(
+                function() {
+                    show_results(result, articles_html, score_mean, score_std);
                 }
             );
 
-        $("#result-info").html(`(${score_mean}\u00b1${score_std})`);
+            return;
+        }
+        else {
+            show_results(result, articles_html, score_mean, score_std);
+        }
     }
 
     function search_error(result) {

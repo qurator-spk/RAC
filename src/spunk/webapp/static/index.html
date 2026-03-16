@@ -47,8 +47,7 @@
             <div class="form-group mb-3 mt-3">
                 <select class="form-control" id="articles-select"></select>
                 <textarea class="form-control mt-1" id="search-for" rows="3" spellcheck="false"
-                          style="max-height: 5rem;min-height: 2rem;">
-                </textarea>
+                          style="max-height: 5rem;min-height: 2rem;" placeholder="Suchanfrage"></textarea>
             </div>
         </div>
     </div>
@@ -83,13 +82,18 @@
                         </button>
                     </h5>
                 </div>
-                <ul class="card-body list-group" id="article-list" style="height: 64vh;overflow-y: scroll;">
-                    No content yet.
-                </ul>
+                <div class="card-body" style="height: 64vh;overflow-y: scroll;">
+                    <ul class="list-group" id="article-list" >
+                    </ul>
+                    <div id="help" class="mt-3 text-left"></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 <script src="js/zefys.js"></script>
+<script>
+    $("#help").load("help.html");
+</script>
 </body>
 </html>
