@@ -108,7 +108,7 @@ def get_publication_name(zdb_id, articles):
 @app.route('/query/<articles>', methods=['POST'])
 @htpasswd.required
 @cache_for(minutes=10)
-def get_query(user, articles, k=100):
+def get_query(user, articles, k=200):
 
     articles_conf = app.config["ARTICLES"][articles]
 
@@ -121,8 +121,6 @@ def get_query(user, articles, k=100):
     hnsw_max_connections = 400
     embedding_dim = 768
     collation_mode = "mean"
-
-    k=200
 
     query = \
         {
@@ -176,6 +174,21 @@ def get_query(user, articles, k=100):
             if len(text) < text_min_len:
                 continue
 
+            summary = ""
+            if "SUMMARY_PROMPT" in app.config["ARTICLES"][articles]:
+
+                df_summary = pd.read_sql("SELECT summary from summaries "
+                                         "WHERE article_id=? AND prompt=? AND model=? and max_tokens=? "
+                                         "AND temperature=?",
+                                         params=(doc["article_id"],
+                                                 app.config["ARTICLES"][articles]["SUMMARY_PROMPT"],
+                                                 app.config["ARTICLES"][articles]["SUMMARY_MODEL"],
+                                                 app.config["ARTICLES"][articles]["SUMMARY_MAX_TOKENS"],
+                                                 app.config["ARTICLES"][articles]["SUMMARY_TEMPERATURE"]), con=art_db);
+
+                if len(df_summary) > 0:
+                    summary = df_summary.summary.iloc[0]
+
             page = int(df_regions.page.iloc[0])
 
             left = int(df_regions.min_x.min())
@@ -224,10 +237,10 @@ def get_query(user, articles, k=100):
                            "publication" : publication,
                            "header": header,
                            "text": text,
+                           "summary": summary,
                            "regions": regions})
 
     df_result = pd.DataFrame.from_dict(result)
-    # print(df_result.head())
 
     ret = {
         "docs" : result[0:k],

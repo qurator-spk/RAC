@@ -25,6 +25,7 @@ function zefys_setup (configuration){
     function search(onSuccess, onError) {
 
         $("#article-list").html(spinner_html);
+        $("#help").addClass("d-none");
 
         let request =
             {
@@ -67,19 +68,45 @@ function zefys_setup (configuration){
                     }
                 );
 
+                let summary_button_html="";
+                let summary_html="";
+                if (article.summary.length > 0) {
+
+                    summary_button_html = `
+                        <button class="btn btn-sm btn-secondary" type="button" data-toggle="collapse"
+                              data-target="#collapse-${article.article_id}" aria-expanded="false"
+                              aria-controls="collapse-${article.article_id}">
+                              Zusammenfassung
+                        </button>
+                    `;
+
+                    summary_html = `
+                        <div class="collapse" id="collapse-${article.article_id}">
+                          <div class="card card-body">
+                            <h4>
+                                Zusammenfassung <small>(maschinell erzeugt, nicht zitierfähig) </small>:
+                            </h4>
+                            <p>
+                                ${article.summary}
+                            </p>
+                          </div>
+                        </div>
+                    `;
+                }
+
                 let article_html = `
                     <li class="list-group-item text-left" id="article-list-item-${article.article_id}">
                         <h3 class="align-middle">
-                                <span class="badge badge-warning" style="background-color: ${color};">
+                                <span class="badge badge-warning mb-2" style="background-color: ${color};">
                                     ${idx+1} (${rounded_score})
                                 </span>
                                 <span class="badge badge-secondary"> ${article.publication} </span>
                                 <span class="badge badge-secondary"> ${article.publishing_date} </span>
+                                ${summary_button_html}
                             <div class="mt-2"> ${article.header}</div>
                         </h3>
-
+                        ${summary_html}
                         <p> ${text} </p>
-
                     </li>`;
 
                     articles_html += article_html;
@@ -105,7 +132,9 @@ function zefys_setup (configuration){
             $("#result-info").html(`(${score_mean}\u00b1${score_std})`);
         }
 
-        if (score_std < 0.01) {
+        let score_threshold = 0.01;
+
+        if (score_std < score_threshold) {
             let error_html =
                 `
                     <p> Anfrage zu unspezifisch. </p>
@@ -141,6 +170,7 @@ function zefys_setup (configuration){
         $("#result-info").html("");
         $("#img-original").attr("src", "");
         $("#image-info").addClass("d-none");
+        $("#help").removeClass("d-none");
     }
 
     let search_timeout=null;

@@ -18,7 +18,11 @@
         "SP-1907-1931-ART": {
             "DB_FILE": "data/SP-1907-1931-ART.sqlite",
             "SOLR_ENDPOINT": "http://localhost:8983/solr/test3",
-            "EMBEDDING_MODEL": "data/embeddinggemma-300m"
+            "EMBEDDING_MODEL": "data/embeddinggemma-300m",
+            "SUMMARY_PROMPT": "prompt_BASIC_1_S_EN",
+            "SUMMARY_MODEL": "gpt-oss:20b",
+            "SUMMARY_MAX_TOKENS": 512,
+            "SUMMARY_TEMPERATURE": 0.0
         }
     }
 }

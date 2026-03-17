@@ -175,8 +175,6 @@ def create_annoy_index(emb_db_sqlite, dist_measure, n_trees, shard, embedding_di
 def query_solr_index(art_db_sqlite, solr_core_url, model_dir, query_text, k, embedding_dim,
                      hnsw_beam_width, hnsw_max_connections, collation_mode):
 
-
-
     embedding_field = \
         "embedding_{}_vec_{}_mc{}_bw{}".format(collation_mode, int(embedding_dim),
                                                int(hnsw_beam_width), int(hnsw_max_connections))
@@ -195,7 +193,7 @@ def query_solr_index(art_db_sqlite, solr_core_url, model_dir, query_text, k, emb
              {
                  "f": embedding_field,
                  "v": "[{}]".format(",".join(embeddings)),
-                 "topK": 2 * k,
+                 "topK": k,
              }
 
     query = \
