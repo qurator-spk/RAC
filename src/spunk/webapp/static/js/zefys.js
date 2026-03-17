@@ -136,20 +136,30 @@ function zefys_setup (configuration){
         $("#article-list").html("ERROR.");
     }
 
+    function clear_interface() {
+        $("#article-list").html("");
+        $("#result-info").html("");
+        $("#img-original").attr("src", "");
+        $("#image-info").addClass("d-none");
+    }
+
     let search_timeout=null;
     $("#search-for").on("keyup",
         function(e) {
 
             if ($("#search-for").val() === search_text) return;
 
+            if ($("#search-for").val().length === 0) {
+                clear_interface();
+                search_text="";
+                return;
+            }
+
             search_text = $("#search-for").val();
 
             if (search_timeout !== null) clearTimeout(search_timeout);
 
-            $("#article-list").html("");
-            $("#result-info").html("");
-            $("#img-original").attr("src", "");
-            $("#image-info").addClass("d-none");
+            clear_interface();
 
             search_timeout = setTimeout(
                 function() {
