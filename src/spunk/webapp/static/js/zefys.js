@@ -114,6 +114,7 @@ function zefys_setup (configuration){
         );
 
         function show_results(result, articles_html, score_mean, score_std) {
+            $("#help").addClass("d-none");
             $("#article-list").html(articles_html);
 
             result.docs.forEach(
@@ -147,6 +148,7 @@ function zefys_setup (configuration){
                 `;
 
             $("#article-list").html(error_html);
+            $("#help").removeClass("d-none");
 
             $("#show-anyway").click(
                 function() {

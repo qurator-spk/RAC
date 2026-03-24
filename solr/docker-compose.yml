@@ -3,7 +3,7 @@ version: "3.8"
 
 services:
   solr:
-    image: solr:latest   # pick whatever tag you need
+    image: solr:9 # pick whatever tag you need
     container_name: solr
     restart: unless-stopped
     ports:
@@ -35,7 +35,7 @@ services:
       # separate directory inside SOLR_HOME
       #- SOLR_DATA_HOME=/var/solr/data
     environment:
-      - SOLR_JAVA_MEM=-Xms16g -Xmx16g          # JVM heap
+      - SOLR_JAVA_MEM=-Xms64g -Xmx64g          # JVM heap
 
 # volumes:
   # Uncomment only if you’re using the named‑volume option above

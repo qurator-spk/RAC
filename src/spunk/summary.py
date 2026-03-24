@@ -232,26 +232,6 @@ def compute_summaries(art_db_sqlite, model, zdb_id, year, start_year, stop_year,
             art_db.execute('COMMIT TRANSACTION')
 
 
-def apply_mxfp4_quantization(module):
-    for name, child in module.named_children():
-        if isinstance(child, torch.nn.Linear):
-            # replace with bitsandbytes Linear4bit
-            new_child = bnb.nn.Linear4bit(
-                child.in_features,
-                child.out_features,
-                bias=child.bias is not None,
-                device=child.weight.device,
-                dtype=child.weight.dtype,
-                quant_type="mxfp4",
-                compute_dtype=torch.float32  # activations stay FP32
-            )
-            new_child.weight.data = child.weight.data.clone()
-            if child.bias is not None:
-                new_child.bias.data = child.bias.data.clone()
-            setattr(module, name, new_child)
-        else:
-            apply_mxfp4_quantization(child)
-
 @click.command()
 @click.argument('model_dir', type=click.Path(exists=True))
 def sum_test1(model_dir):

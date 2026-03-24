@@ -6,6 +6,7 @@ import os
 import ipdb
 import numpy as np
 import pandas as pd
+from openpyxl.styles.builtins import total
 from pyarrow import json_
 
 from tqdm import tqdm
@@ -154,76 +155,255 @@ def create_annoy_index(emb_db_sqlite, dist_measure, n_trees, shard, embedding_di
                       total=len(ann_indices), desc="Building indices ..."):
             pass
 
+class QueryIndexTask:
+    solr_core_url=None
+    solr = None
+
+    def __init__(self, query, query_param=None):
+        self._query = query
+        self._query_param = query_param
+
+    def __call__(self, *args, **kwargs):
+        response = None
+
+        # import ipdb;ipdb.set_trace()
+
+        if QueryIndexTask.solr is not None:
+            try:
+                response = QueryIndexTask.solr.search(q='*:*', json=json.dumps(self._query), fl="*,score", sort="score desc")
+            except pysolr.SolrError:
+                pass
+
+        return self._query, response, self._query_param
+
+    @staticmethod
+    def initialize(solr_core_url):
+
+        if solr_core_url is None:
+            return
+
+        QueryIndexTask.solr_core_url = solr_core_url
+        QueryIndexTask.solr = pysolr.Solr(solr_core_url, timeout=120)
+
 
 @click.command()
-@click.argument('art-db-sqlite', type=click.Path(exists=True))
-@click.argument('solr-core-url', type=str)
+@click.option('--solr-core-url', type=str, default=None)
 @click.option('--model-dir', type=click.Path(exists=True), default="None")
-@click.option('--query-text', type=str, default=None,
+@click.option('--query-text', type=str, default=None, help="")
+@click.option('--k', type=int, default=10, help="k. Default 10.")
+@click.option('--limit-factor', type=int, default=1, help="Limit. Default 10.")
+@click.option('--embedding-dim', type=click.Choice([128, 256, 512, 768]), default=[128], multiple=True,
               help="Use first N dimensions of embeddings. Default 128.")
-@click.option('--k', type=int, default=10,
-              help="k. Default 10.")
-@click.option('--embedding-dim', type=click.Choice([128, 256, 512, 768]), default=128,
-              help="Use first N dimensions of embeddings. Default 128.")
-@click.option('--hnsw-beam-width', type=click.Choice([16,32,64]), default=16,
+@click.option('--hnsw-beam-width', type=click.Choice([16,32,64]), default=[16], multiple=True,
               help="")
-@click.option('--hnsw-max-connections', type=click.Choice([100,200,400]), default=100,
+@click.option('--hnsw-max-connections', type=click.Choice([100,200,400]), default=[100], multiple=True,
               help="")
 @click.option('--collation-mode', type=click.Choice(['raw', 'mean', 'max', 'min', 'absminmax']),
-              default='mean',
-              help="How to collate multiple embeddings of longer texts. Default: raw => do not collate at all.")
-def query_solr_index(art_db_sqlite, solr_core_url, model_dir, query_text, k, embedding_dim,
-                     hnsw_beam_width, hnsw_max_connections, collation_mode):
+              multiple=True, default=['mean'], help="How to collate multiple embeddings of longer texts. Default: mean.")
+@click.option('--art-db-sqlite', type=click.Path(exists=True), default=None, help="")
+@click.option('--summaries-db', type=click.Path(), default=None, help="")
+@click.option('--query-result-db', type=click.Path(), default=None, help="")
+@click.option('--write-query-json', type=click.Path(), default=None, help="")
+@click.option('--stop-at', type=int, default=None, help="")
+@click.option('--processes', type=int, default=0, help="")
+@click.option('--chunk-size', type=int, default=1000, help="")
+def query_solr_index(solr_core_url, model_dir, query_text, k, limit_factor, embedding_dim,
+                     hnsw_beam_width, hnsw_max_connections, collation_mode, art_db_sqlite,
+                     summaries_db, query_result_db, write_query_json, stop_at,processes, chunk_size):
 
-    embedding_field = \
-        "embedding_{}_vec_{}_mc{}_bw{}".format(collation_mode, int(embedding_dim),
-                                               int(hnsw_beam_width), int(hnsw_max_connections))
-
-    print(embedding_field)
-
-    if query_text is not None and model_dir is not None:
-
+    model=None
+    if model_dir is not None:
         model = SentenceTransformer(model_dir)
 
-        embeddings = model.encode([ "title: | text: {}".format(query_text)], batch_size=1)
+    query_params = \
+        [("embedding_{}_vec_{}_mc{}_bw{}".format(cm, int(ed), int(hbw), int(hmc)),
+         cm, int(ed), int(hbw), int(hmc), k, limit_factor)
+         for cm in collation_mode for ed in embedding_dim for hbw in hnsw_beam_width
+         for hmc in hnsw_max_connections]
 
-        embeddings = [str(f) for f in  list(embeddings[0][0:embedding_dim])]
+    def make_query(embeddings, _k, _limit_factor, _embedding_field, _embedding_dim):
+
+        embeddings = [str(f) for f in  list(embeddings[0][0:_embedding_dim])]
 
         knn_query = \
              {
-                 "f": embedding_field,
-                 "v": "[{}]".format(",".join(embeddings)),
-                 "topK": k,
+                 "knn": {
+                     "f": _embedding_field,
+                     "v": "[{}]".format(",".join(embeddings)),
+                     "topK": int(_limit_factor*k)
+                 }
              }
 
-    query = \
-        {
-            "q": "*:*",
-            "limit": k,
-            "knn": knn_query
-        }
+        query = \
+            {
+                "limit": _k,
+                "query": knn_query
+            }
 
-    solr = pysolr.Solr(solr_core_url, timeout=10)
+        return query
 
-    response = solr.search(q='*:*', json=json.dumps(query), fl="*,score", sort="score desc")
+    def get_queries():
+        if query_text is not None:
 
-    with sqlite3.connect(art_db_sqlite) as art_db:
-        for doc in response.docs:
+            embeddings = model.encode(["title: | text: {}".format(query_text)], batch_size=1)
+
+            for query_param  in tqdm(query_params):
+                embedding_field, cm, ed, hbw, hmc, k, limit_factor = query_param
+
+                yield QueryIndexTask(make_query(embeddings, k, limit_factor, embedding_field, ed), query_param)
+
+        elif summaries_db is not None:
+
+            with sqlite3.connect(summaries_db) as sdb:
+
+                df_queries = pd.read_sql("SELECT article_id, prompt, model, max_tokens, temperature, "
+                                         "summary FROM summaries", con=sdb)
+
+            df_queries = df_queries.iloc[np.random.permutation(len(df_queries))].reset_index(drop=True)
+
+            def get_query_chunks():
+
+                n=0
+                chunk=[]
+                for _, (article_id, prompt, model_name, max_tokens, temperature, summary) in \
+                        tqdm(df_queries.iterrows(), total=len(df_queries), leave=False, desc="queries"):
+
+                    if stop_at is not None and n >= stop_at:
+                        if len(chunk) > 0:
+                            yield chunk
+                            chunk=[]
+                        break
+
+                    chunk.append(
+                        ((article_id, prompt, model_name, max_tokens, temperature, summary),
+                         model.encode(["title: | text: {}".format(summary)], batch_size=1)))
+
+                    n += 1
+
+                    if len(chunk) >= chunk_size:
+                        yield chunk
+                        chunk=[]
+
+                if len(chunk) > 0:
+                    yield chunk
+
+            for chunk in get_query_chunks():
+
+                for query_param in tqdm(query_params, leave=False, desc="query_params"):
+                    for (article_id, prompt, model_name, max_tokens, temperature, summary), embeddings in \
+                            tqdm(chunk, leave=False, desc="chunk"):
+
+                        embedding_field, cm, ed, hbw, hmc, k, limit_factor = query_param
+
+                        full_query_param = query_param + (article_id, prompt, model_name, max_tokens, temperature)
+
+                        yield QueryIndexTask(make_query(embeddings, k, limit_factor, embedding_field, ed),
+                                             full_query_param)
+
+
+    def print_result_articles(response):
+        with sqlite3.connect(art_db_sqlite) as art_db:
+            for doc in response.docs:
+                df_regions = pd.read_sql("SELECT type, text, article_pos FROM regions WHERE article_id=?", con=art_db,
+                                         params=(doc["article_id"],))
+
+                header = " ".join(df_regions.loc[df_regions.type == "header"]. \
+                                  sort_values(by="article_pos", ascending=True).text.tolist())
+
+                text = " ".join(df_regions.loc[df_regions.type == "paragraph"]. \
+                                sort_values(by="article_pos", ascending=True).text.tolist())
+
+                print("\n\n==============\nTitel: {}\nDatum: {}\nZDB-ID: {}\nText:\n{}".format(header,
+                                                                                               doc["publishing_date"],
+                                                                                               doc["zdbid"], text.strip()))
+
+    def setup_query_result_db(query_result_db):
+
+        with sqlite3.connect(query_result_db) as qrdb:
+
+            qrdb.execute('BEGIN EXCLUSIVE TRANSACTION')
+
+            qrdb.execute('CREATE TABLE IF NOT EXISTS "results" '
+                         '( "k" INTEGER, "limit_factor" INTEGER, '
+                         '"article_id" INTEGER, "prompt" TEXT, "model" TEXT, "max_tokens" INTEGER, "temperature" REAL, '
+                         ' "collation_mode" TEXT, "embedding_dim" INTEGER, "hnsw_beam_width" INTEGER,'
+                         ' "hnsw_max_connections" INTEGER, "article_ids" TEXT, "scores" TEXT);')
+
+            qrdb.execute('CREATE INDEX IF NOT EXISTS idx_results ON results(k, limit_factor, article_id, prompt, model, '
+                         'max_tokens, temperature, collation_mode, embedding_dim, hnsw_beam_width, hnsw_max_connections);')
+
+            qrdb.execute('COMMIT TRANSACTION')
+
+    if query_result_db is not None:
+        setup_query_result_db(query_result_db)
+
+    queries = list()
+    for query, response, query_param in \
+            prun(get_queries(), initializer=QueryIndexTask.initialize, initargs=(solr_core_url,), processes=processes):
+
+        if art_db_sqlite is not None:
+            print_result_articles(response)
+
+        elif query_result_db is not None:
+
+            if response is None:
+                continue
+
             # import ipdb;ipdb.set_trace()
-            df_regions = pd.read_sql("SELECT type, text, article_pos FROM regions WHERE article_id=?", con=art_db,
-                                     params=(doc["article_id"],))
 
-            header = " ".join(df_regions.loc[df_regions.type == "header"]. \
-                              sort_values(by="article_pos", ascending=True).text.tolist())
+            embedding_field, cm, ed, hbw, hmc, k, limit_factor, article_id, prompt, model_name, max_tokens, temperature =\
+                query_param
 
-            text = " ".join(df_regions.loc[df_regions.type == "paragraph"]. \
-                            sort_values(by="article_pos", ascending=True).text.tolist())
+            article_ids = ",".join([str(doc["article_id"]) for doc in response.docs])
 
-            print("\n\n==============\nTitel: {}\nDatum: {}\nZDB-ID: {}\nText:\n{}".format(header,
-                                                                                           doc["publishing_date"],
-                                                                                           doc["zdbid"], text.strip()))
+            scores = ",".join([str(doc["score"]) for doc in response.docs])
 
-            # print(f"id={doc['id']}, score={doc['score']}")
+            #import ipdb;ipdb.set_trace()
+
+            with sqlite3.connect(query_result_db) as qrdb:
+
+                qrdb.execute('BEGIN EXCLUSIVE TRANSACTION')
+
+                qrdb.execute(
+                    'INSERT INTO results(k, limit_factor, article_id, prompt, model, max_tokens, '
+                    'temperature, collation_mode, embedding_dim, hnsw_beam_width, hnsw_max_connections, '
+                    'article_ids, scores )'
+                    ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                    (k, limit_factor, article_id, prompt, model_name, max_tokens, temperature, cm,
+                     ed, hbw, hmc, article_ids, scores))
+
+                qrdb.execute('COMMIT TRANSACTION')
+        elif write_query_json is not None:
+
+            #import ipdb;ipdb.set_trace()
+
+            embedding_field, cm, ed, hbw, hmc, k, limit_factor, article_id, prompt, model_name, max_tokens, temperature = \
+                query_param
+
+            item = {
+                "query" : query,
+                "query_params": {
+                    "embedding_field": embedding_field,
+                    "collation_mode": cm,
+                    "embedding_dim": ed,
+                    "hnsw_beam_width": hbw,
+                    "hnsw_max_connections": hmc,
+                    "k": k,
+                    "limit_factor": limit_factor,
+                    "article_id": article_id,
+                    "prompt": prompt,
+                    "model": model_name,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature
+                }
+            }
+
+            queries.append(item)
+
+    if write_query_json is not None:
+        with open(write_query_json, "w", encoding="utf-8") as a_file:
+            # noinspection PyTypeChecker
+            json.dump(queries, a_file, ensure_ascii=False, indent=3)
 
 
 class ArticleIndexTask:
@@ -234,7 +414,6 @@ class ArticleIndexTask:
 
         self._article_id = article_id
         self._embedding_dim = embedding_dim
-        #self._mode = "mean"
         self._mode = collation_mode
 
     def __call__(self, *args, **kwargs):
@@ -249,8 +428,6 @@ class ArticleIndexTask:
 
         embeddings = pd.DataFrame(embeddings)
 
-        # import ipdb;ipdb.set_trace()
-
         if len(embeddings) < 1:
             return self._article_id, None
 
@@ -259,23 +436,22 @@ class ArticleIndexTask:
         for mode in self._mode:
 
             if mode == "mean":
-                vec = embeddings.mean() #.iloc[0:self._embedding_dim]
+                vec = embeddings.mean()
 
                 vec = pd.DataFrame(vec).T
 
             elif mode == "max":
-                vec = embeddings.max() #.iloc[0:self._embedding_dim]
+                vec = embeddings.max()
 
                 vec = pd.DataFrame(vec).T
 
             elif mode == "min":
-                vec = embeddings.min() #.iloc[0:self._embedding_dim]
+                vec = embeddings.min()
 
                 vec = pd.DataFrame(vec).T
 
             elif mode == "absminmax":
                 if len(embeddings) > 1:
-                    #embeddings = embeddings.iloc[:, 0:self._embedding_dim]
 
                     emb_abs = embeddings.abs()
 
@@ -286,13 +462,11 @@ class ArticleIndexTask:
                     sgn = pd.DataFrame([sgn.iloc[r, c] for c, r in enumerate(abs_idx.tolist())])
 
                     vec  = pd.DataFrame(emb_abs.max() * sgn.T)
-                    #import ipdb;ipdb.set_trace()
                 else:
-                    vec = pd.DataFrame(embeddings.max()).T  #.iloc[0:self._embedding_dim]).T
-                    #import ipdb;ipdb.set_trace()
+                    vec = pd.DataFrame(embeddings.max()).T
 
             elif mode == "raw":
-                vec = embeddings # .iloc[:, 0:self._embedding_dim]
+                vec = embeddings
             else:
                 raise RuntimeError("Unknown collation-mode: {}".format(self._mode))
 
@@ -408,7 +582,6 @@ def create_solr_index(emb_db_sqlite, solr_core_url, embedding_dim, hnsw_beam_wid
                 "embedding_{}_vec_{}_mc{}_bw{}".format(mode, int(emb_dim),
                                                        int(beam_width), int(max_connections))
             for row_id, row in vec.iterrows():
-                # import ipdb;ipdb.set_trace()
 
                 the_id = str(aid)+"-"+str(row_id)
 
@@ -429,8 +602,6 @@ def create_solr_index(emb_db_sqlite, solr_core_url, embedding_dim, hnsw_beam_wid
                             "publishing_date": publishing_date
                         }
 
-            #import ipdb;
-            #ipdb.set_trace()
         for _,json_item in new_json_items.items():
             json_data.append(json_item)
 
