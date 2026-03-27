@@ -45,5 +45,24 @@ make run-zefys-statistics
 The [make target "run-zefys-statistics"](Makefile) re-runs a [jupyter notebook](notebooks/zefys-statistics.ipynb) that contains all the details.
 
 
+## Workflow
 
-
+```mermaid
+graph TD
+    NFS[NFS-filesystem e.g. /nfs/zefys] -->|zefys-scanner| ZEFYS-FILELIST(ZEFYS-filelist)
+    ZEFYS-FILELIST -->|zefys-downloader| BATCH-DIRECTORIES(batch directories)
+    BATCH-DIRECTORIES -->|eynollah| PAGE-XMLS(page XML files)
+    PAGE-XMLS -->|zefys-ocr-database| OCR-DATABASE(compressed sqlite OCR-database)
+    OCR-DATABASE -->|create-article-database| ARTICLE-DATABASE(article database)
+    ARTICLE-DATABASE -->|article-json-export| ARTICLE-JSON(articles as JSON)
+    OCR-DATABASE -->|zefys-unpack-ocr-database| PAGE-XMLS
+    OCR-DATABASE -->|zefys-ocr-filelist| OCR-FILELIST(filelist of archive as TSV file)
+    OCR-DATABASE-2(Another OCR database) -->|zefys-join-ocr-databases| JOINED-OCR-DATABASE(joined OCR-database)
+    OCR-DATABASE -->|zefys-join-ocr-databases| JOINED-OCR-DATABASE(joined OCR-database)
+    ARTICLE-DATABASE -->|zefys-create-embeddings| EMBEDDING-DATABASE(embedding database)
+    ARTICLE-DATABASE -->|compute summaries| SUMMARIES(summaries) --> ARTICLE-DATABASE
+    EMBEDDING-DATABASE -->|zefys-create-solr-index| SOLR-INDEX(Apache solr index)
+    EMBEDDING-DATABASE -->|zefys-create-annoy-index| ANNOY-INDEX(annoy index)
+    SOLR-INDEX --> WEB-INTERFACE(web interface)
+    SOLR-INDEX -->|query-solr-index| QUERY-RESULT(query results / quantitative evaluation)
+```
