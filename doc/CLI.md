@@ -1,4 +1,4 @@
-##zefys-create-annoy-index
+## zefys-create-annoy-index
 ```
 Usage: zefys-create-annoy-index [OPTIONS] EMB_DB_SQLITE
 
@@ -11,7 +11,7 @@ Options:
   --stop-at INTEGER
   --help                   Show this message and exit.
 ```
-##zefys-scanner
+## zefys-scanner
 ```
 Usage: zefys-scanner [OPTIONS] OUT_FILE
 
@@ -25,7 +25,7 @@ Options:
                          ~/SPUNK/workbench/zefys_image_files.txt
   --help                 Show this message and exit.
 ```
-##zefys-create-embeddings
+## zefys-create-embeddings
 ```
 Usage: zefys-create-embeddings [OPTIONS] ART_DB_SQLITE EMB_DB_SQLITE MODEL_DIR
 
@@ -35,14 +35,14 @@ Options:
   --batch-size INTEGER
   --help                      Show this message and exit.
 ```
-##zefys-join-ocr-databases
+## zefys-join-ocr-databases
 ```
 Usage: zefys-join-ocr-databases [OPTIONS] TARGET_SQLITE [SOURCE_SQLITE]...
 
 Options:
   --help  Show this message and exit.
 ```
-##zefys-unpack-ocr-database
+## zefys-unpack-ocr-database
 ```
 Usage: zefys-unpack-ocr-database [OPTIONS] SQLITE_FILE
 
@@ -77,7 +77,7 @@ Options:
   --stop-page INTEGER    Consider a page interval [start-page, stop-page[
   --help                 Show this message and exit.
 ```
-##zefys-create-solr-index
+## zefys-create-solr-index
 ```
 Usage: zefys-create-solr-index [OPTIONS] EMB_DB_SQLITE SOLR_CORE_URL
 
@@ -104,7 +104,7 @@ Options:
                                   Default 10.
   --help                          Show this message and exit.
 ```
-##zefys-ocr-database
+## zefys-ocr-database
 ```
 Usage: zefys-ocr-database [OPTIONS] DIRECTORY SQLITE_FILE
 
@@ -149,7 +149,7 @@ Options:
                            all cores)
   --help                   Show this message and exit.
 ```
-##zefys-downloader
+## zefys-downloader
 ```
 Usage: zefys-downloader [OPTIONS] SCAN_IMAGES_FILE TARGET_PATH
 
@@ -189,17 +189,17 @@ Options:
                          supplied multiple times
   --help                 Show this message and exit.
 ```
-##zefys-ocr-filelist
+## zefys-ocr-filelist
 ```
 Usage: zefys-ocr-filelist [OPTIONS] SQLITE_FILE TSV_FILE_OUT
 
 Options:
   --help  Show this message and exit.
 ```
-##compute-summaries
+## compute-summaries
 ```
 ```
-##create-article-database
+## create-article-database
 ```
 Usage: create-article-database [OPTIONS] OCR_DB_SQLITE SQLITE_FILE
 
