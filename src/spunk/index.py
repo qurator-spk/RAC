@@ -7,7 +7,7 @@ import ipdb
 import numpy as np
 import pandas as pd
 from openpyxl.styles.builtins import total
-from pyarrow import json_
+# from pyarrow import json_
 
 from tqdm import tqdm
 
@@ -57,7 +57,7 @@ class BuildIndexTask:
 @click.option('--dist-measure', type=str, default='angular', help="Distance measure of the approximate nearest"
               " neighbour index. default: angular.")
 @click.option('--n-trees', type=int, default=10, help="Number of search trees. Default 10.")
-@click.option('--shard', type=str, multiple=True, default=None, help="")
+@click.option('--shard', type=str, multiple=True, default=[], help="")
 @click.option('--embedding-dim', type=int, default=None, help="")
 @click.option('--stop-at', type=int, default=None, help="")
 def create_annoy_index(emb_db_sqlite, dist_measure, n_trees, shard, embedding_dim, stop_at):
@@ -481,13 +481,13 @@ class ArticleIndexTask:
 @click.command()
 @click.argument('emb-db-sqlite', type=click.Path(exists=True))
 @click.argument('solr-core-url', type=str)
-@click.option('--embedding-dim', type=click.Choice([128, 256, 512, 768]), default=128,
+@click.option('--embedding-dim', type=click.Choice([128, 256, 512, 768]), default=[128],
               help="Use first N dimensions of embeddings. Default 128.", multiple=True)
-@click.option('--hnsw-beam-width', type=click.Choice([16,32,64]), default=16,
+@click.option('--hnsw-beam-width', type=click.Choice([16,32,64]), default=[16],
               help="", multiple=True)
-@click.option('--hnsw-max-connections', type=click.Choice([100,200,400]), default=100,
+@click.option('--hnsw-max-connections', type=click.Choice([100,200,400]), default=[100],
               help="", multiple=True)
-@click.option('--collation-mode', type=click.Choice(['raw', 'mean', 'max', 'min', 'absminmax']), default='raw',
+@click.option('--collation-mode', type=click.Choice(['raw', 'mean', 'max', 'min', 'absminmax']), default=['raw'],
               help="How to collate multiple embeddings of longer texts. Default: raw => do not collate at all.", multiple=True)
 @click.option('--stop-at', type=int, default=None,
               help="Process only the first N embeddings. Default: Process all.")
