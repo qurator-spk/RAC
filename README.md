@@ -62,8 +62,7 @@ The [make target "run-zefys-statistics"](Makefile) re-runs a [jupyter notebook](
 
 ```mermaid
 graph TD
-    NFS([NFS-filesystem e.g. /nfs/zefys]) --- zefys-scanner[zefys-scanner]
-    zefys-scanner --> ZEFYS-FILELIST(ZEFYS-filelist)
+    NFS[NFS-filesystem e.g. /nfs/zefys] --> |zefys-scanner| ZEFYS-FILELIST(ZEFYS-filelist)
     ZEFYS-FILELIST -->|zefys-downloader| BATCH-DIRECTORIES(batch directories)
     BATCH-DIRECTORIES -->|eynollah| PAGE-XMLS(page XML files)
     PAGE-XMLS -->|zefys-ocr-database| OCR-DATABASE(compressed sqlite OCR-database)
@@ -79,11 +78,5 @@ graph TD
     EMBEDDING-DATABASE -->|zefys-create-annoy-index| ANNOY-INDEX(annoy index)
     SOLR-INDEX --> WEB-INTERFACE(web interface)
     SOLR-INDEX -->|query-solr-index| QUERY-RESULT(query results / quantitative evaluation)
-    
-    zefys-scanner:::cli_tool
-    click zefys-scanner doc/CLI.md#zefys-scanner
-    
-    classDef cli_tool fill:#757575, color:#FFFFFF, stroke-width:1px, stroke-dasharray:1
-    
      
 ```
