@@ -56,7 +56,6 @@ def apply_filter(df, column_name, values, start, stop):
                                  "~/SPUNK/workbench/zefys_image_files.txt")
 def scanner(out_file, zefys_filelist):
     """
-    :return:
     """
 
     df_all = pd.read_csv(zefys_filelist, header=None, names=["fullpath"])

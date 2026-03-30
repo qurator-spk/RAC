@@ -12,4 +12,4 @@ run-zefyAs-statistics:
 	echo \`\`\` >> $(CLI_DOC_FILE)
 CLI-MD-HEADER:
 	rm $(CLI_DOC_FILE)
-CLI-MD: CLI-MD-HEADER zefys-create-annoy-index-command-doc zefys-scanner-command-doc zefys-create-embeddings-command-doc zefys-join-ocr-databases-command-doc zefys-unpack-ocr-database-command-doc zefys-create-solr-index-command-doc zefys-ocr-database-command-doc zefys-downloader-command-doc zefys-ocr-filelist-command-doc compute-summaries-command-doc create-article-database-command-doc
+CLI-MD: CLI-MD-HEADER zefys-scanner-command-doc zefys-downloader-command-doc zefys-ocr-database-command-doc zefys-unpack-ocr-database-command-doc zefys-join-ocr-databases-command-doc zefys-ocr-filelist-command-doc create-article-database-command-doc article-json-export-command-doc zefys-create-embeddings-command-doc compute-summaries-command-doc zefys-create-solr-index-command-doc query-solr-index-command-doc zefys-create-annoy-index-command-doc

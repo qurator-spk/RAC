@@ -47,6 +47,19 @@ The [make target "run-zefys-statistics"](Makefile) re-runs a [jupyter notebook](
 
 ## Workflow
 
+* [zefys-scanner](doc/CLI.md#zefys-scanner) | [zefys-downloader](doc/CLI.md#zefys-downloader)
+* [zefys-ocr-database](doc/CLI.md#zefys-ocr-database) 
+| [zefys-unpack-ocr-database](doc/CLI.md#zefys-unpack-ocr-database)
+| [zefys-join-ocr-databases](doc/CLI.md#zefys-join-ocr-databases)
+| [zefys-ocr-filelist](doc/CLI.md#zefys-ocr-filelist)
+* [create-article-database](doc/CLI.md#create-article-database)
+| [article-json-export](doc/CLI.md#article-json-export)
+* [zefys-create-embeddings](doc/CLI.md#zefys-create-embeddings)
+* [compute-summaries](doc/CLI.md#compute-summaries)
+* [zefys-create-solr-index](doc/CLI.md#zefys-create-solr-index)
+| [query-solr-index](doc/CLI.md#query-solr-index)
+* [zefys-create-annoy-index](doc/CLI.md#zefys-create-annoy-index)
+
 ```mermaid
 graph TD
     NFS[NFS-filesystem e.g. /nfs/zefys] -->|zefys-scanner| ZEFYS-FILELIST(ZEFYS-filelist)

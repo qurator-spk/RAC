@@ -17,9 +17,9 @@ from .zefys import apply_filter
 
 import torch
 
-from accelerate import Accelerator
+# from accelerate import Accelerator
 
-import bitsandbytes as bnb
+# import bitsandbytes as bnb
 
 import requests
 
