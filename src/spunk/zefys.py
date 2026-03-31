@@ -48,17 +48,89 @@ def apply_filter(df, column_name, values, start, stop):
 
 @click.command()
 @click.argument('out-file', type=click.Path(exists=False))
+@click.option('--directory', type=str, default=None,
+              help="Recursively search image files in the directory. See also options: "
+                   "pattern, follow-symlinks, subset-json, subset-dirs-json")
 @click.option('--zefys-filelist', type=str,
-              default=None, help="Run in /nfs/zefys (takes roughly 24 hours!):         "
+              default=None, help="A pre-computed image file list as text file. "
+                                 "One image file with absolute path per line. "
+                                 "Can be obtained for instance from "
+                                 "running in /nfs/zefys (takes roughly 24 hours!):         "
                                  "find ./ -wholename \"*/presentation/*.jpg\" "
                                  "   -o -wholename \"*/presentation/*.jpeg\""
                                  "   -o -wholename \"*/presentation/*.png\" > "
-                                 "~/SPUNK/workbench/zefys_image_files.txt")
-def scanner(out_file, zefys_filelist):
+                                 "zefys_image_files.txt")
+@click.option('--pattern', type=str, multiple=True,
+              default=["*/presentation/*.jpg", "*/presentation/*.jpeg", "*/presentation/*.png" ],
+              help="File pattern to search for in case of directory search. "
+                   "Default: "
+                   "[\"*/presentation/*.jpg\", \"*/presentation/*.jpeg\", \"*/presentation/*.png\" ]"
+                   "Can be used in order to consider"
+                   " only a particular subset of subdirectories in the recursive search, for "
+                   "instance */presentation/*.jpg considers only .jpg files located in a "
+                   "subdirectory \"presentation\"")
+@click.option('--follow-symlinks', type=bool, is_flag=True, default=False)
+@click.option('--subset-json', type=click.Path(exists=True), default=None,
+              help="Consider only the subset of page-XML files defined in this json file.")
+@click.option('--subset-dirs-json', type=click.Path(exists=True), default=None,
+              help="Recursively search only through a subset of sub-directories as defined in this json file.")
+def scanner(out_file, directory, zefys_filelist, pattern, follow_symlinks, subset_json, subset_dirs_json):
     """
+    Recursively search some directory for image files. Process the filenames of the found files
+    with regular expressions in order to extract information such as ZDB_ID, YEAR, MONTH, DAY,
+    ISSUE, PAGE from them. Output a tab separated value file (TSV) that contains all this
+    information for further use for instance with zefys-downloader.
     """
 
-    df_all = pd.read_csv(zefys_filelist, header=None, names=["fullpath"])
+    if zefys_filelist is not None:
+        df_all = pd.read_csv(zefys_filelist, header=None, names=["fullpath"])
+    elif directory is not None:
+        subset_dirs = None
+        if subset_dirs_json is not None:
+            with open(subset_dirs_json, 'r') as sdf:
+                subset_dirs = set(json.load(sdf))
+
+        def file_it(to_scan):
+            nonlocal subset_dirs
+            nonlocal follow_symlinks
+
+            for af in os.scandir(to_scan):
+
+                try:
+                    if af.is_dir(follow_symlinks=follow_symlinks):
+
+                        if subset_dirs is not None and af.path not in subset_dirs:
+                            continue
+
+                        for g in file_it(af):
+                            yield g
+                    else:
+                        if not fnmatch(af.path, pattern):
+                            continue
+                        yield af.path
+                except NotADirectoryError:
+                    continue
+
+        subset = None
+        if subset_json is not None:
+            with open(subset_json, 'r') as f:
+                subset = json.load(f)
+
+        _file_it = tqdm(file_it(directory))
+
+        df_all = []
+
+        for file in _file_it:
+
+            if subset is not None:
+                if os.path.basename(file) not in subset:
+                    continue
+
+            df_all.append(file)
+
+        df_all = pd.DataFrame(df_all, columns=["fullpath"])
+    else:
+        raise RuntimeError("Either directory or zefys-filelist have to be given!.")
 
     # remove certain files since they are XML files but not of interest for our purposes
     df = df_all.loc[~df_all.fullpath.str.startswith('./scandata')

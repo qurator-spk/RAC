@@ -2,15 +2,36 @@
 ```
 Usage: zefys-scanner [OPTIONS] OUT_FILE
 
-
+  Recursively search some directory for image files. Process the filenames of
+  the found files with regular expressions in order to extract information
+  such as ZDB_ID, YEAR, MONTH, DAY, ISSUE, PAGE from them. Output a tab
+  separated value file (TSV) that contains all this information for further
+  use for instance with zefys-downloader.
 
 Options:
-  --zefys-filelist TEXT  Run in /nfs/zefys (takes roughly 24 hours!):
-                         find ./ -wholename "*/presentation/*.jpg"    -o
-                         -wholename "*/presentation/*.jpeg"   -o -wholename
-                         "*/presentation/*.png" >
-                         ~/SPUNK/workbench/zefys_image_files.txt
-  --help                 Show this message and exit.
+  --directory TEXT         Recursively search image files in the directory.
+                           See also options: pattern, follow-symlinks, subset-
+                           json, subset-dirs-json
+  --zefys-filelist TEXT    A pre-computed image file list as text file. One
+                           image file with absolute path per line. Can be
+                           obtained for instance from running in /nfs/zefys
+                           (takes roughly 24 hours!):         find ./
+                           -wholename "*/presentation/*.jpg"    -o -wholename
+                           "*/presentation/*.jpeg"   -o -wholename
+                           "*/presentation/*.png" > zefys_image_files.txt
+  --pattern TEXT           File pattern to search for in case of directory
+                           search. Default: ["*/presentation/*.jpg",
+                           "*/presentation/*.jpeg", "*/presentation/*.png"
+                           ]Can be used in order to consider only a particular
+                           subset of subdirectories in the recursive search,
+                           for instance */presentation/*.jpg considers only
+                           .jpg files located in a subdirectory "presentation"
+  --follow-symlinks
+  --subset-json PATH       Consider only the subset of page-XML files defined
+                           in this json file.
+  --subset-dirs-json PATH  Recursively search only through a subset of sub-
+                           directories as defined in this json file.
+  --help                   Show this message and exit.
 ```
 ## zefys-downloader
 ```
