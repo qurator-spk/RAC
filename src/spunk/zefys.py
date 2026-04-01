@@ -176,7 +176,7 @@ def scanner(out_file, directory, zefys_filelist, pattern, follow_symlinks, subse
 @click.argument('scan-images-file', type=click.Path(exists=True))
 @click.argument('target-path', type=click.Path(exists=False))
 @click.option('--zefys-prefix', type=str, default=None,
-              help="")
+              help="ZEFYY NFS storage path. If specified only symlinks to this location will be created.")
 @click.option('--zdb-id', type=str, multiple=True, default=None,
               help="Consider only this ZDB-ID (can be supplied multiple times).")
 @click.option('--year', type=int, multiple=True, default=None,
@@ -219,16 +219,30 @@ def scanner(out_file, directory, zefys_filelist, pattern, follow_symlinks, subse
               help="Create at most num-batches.")
 @click.option('--exclude-tsv', type=click.Path(exists=True), multiple=True, default=None,
               help="Exclude the files listed in this TSV file. Can be supplied multiple times")
+@click.option('--dry-run', type=bool, is_flag=True, default=False,
+              help="Do not actually do anything.")
 def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                year, start_year, stop_year,
                month, start_month, stop_month,
                day, start_day, stop_day,
                issue, start_issue, stop_issue,
                page, start_page, stop_page,
-               language, batch_size, start_batch, num_batches, exclude_tsv):
+               language, batch_size, start_batch, num_batches, exclude_tsv, dry_run):
     """
+    The tool either creates symlinks to ZEFYS image files or downloads ZEFYS image files in full resolution from the
+    SBB content server. The option --zefys-prefix controls if sysmlinks are used or rather the files are downloaded
+    from the content server. If --zefys-prefix is provided, it should point to a directory where the ZEFYS NFS is
+    mounted. Then the resulting batch directories will only contain sysmlinks to the full resolution images.
+    If --zefys-prefix is omitted then the images would be downloaded.
+    The symlinks or files are stored in a batch directory structure where the option --batch-size controls how many
+    items are stored per batch directory. Which newspapers and time periods are included can be controlled by the
+    --zdb-id, --year, --month ... options.
+
     SCAN_IMAGES_FILE: A TSV file containing of list of all ZEFYS page scan image files that are to be considered.
-    (see zefys-scanner)
+    This file can be created with zefys-scanner.
+
+    TARGET_PATH: Either the name of the new directory where the symlinks or downloaded images are stored if batch-size
+    is omitted or a prefix for the batch directories names to be created if batch-size is specified.
     """
 
     df_files = pd.read_csv(scan_images_file, sep='\t', low_memory=False)
@@ -288,12 +302,41 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                 print("Error creating {} -> {}".format(file, dest))
                 print(str(e))
 
+    def download_batch(batch, tpath):
+
+        os.mkdir(tpath)
+
+        for _, (fullpath, url, z, y, m, d, i, p, t) \
+                in tqdm(batch[['fullpath', 'url', 'zdb', 'year', 'month', 'day', 'issue', 'page', 'type']].
+                                iterrows(), total=len(batch), desc="Creating symlinks in {}".format(tpath)):
+
+            dest = "{}/{}-{}-{}-{}-{}-{}.{}".format(tpath, z, y, m, d, i, p, t)
+
+            image_url=None
+            try:
+                image_url = \
+                    ("https://content.staatsbibliothek-berlin.de/zefys/"
+                     "SNP{}-{}{:02d}{:02d}-{}-{}-0-0/full/full/0/default.jpg"). \
+                        format(z, y, m, d, i - 1, p)
+
+                img_data = requests.get(image_url).content
+
+                with open(dest, 'wb') as imf:
+                    imf.write(img_data)
+
+            except Exception as e:
+                print("Error downloading {}".format(image_url))
+                print(str(e))
+
     if zefys_prefix is not None:
 
         if not zefys_prefix.endswith("/"):
             zefys_prefix += "/"
 
         if batch_size is None:
+            if dry_run:
+                return
+
             link_batch(df_files, target_path)
         else:
 
@@ -302,6 +345,9 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
 
             max_batches = int(np.ceil(len(df_files)/batch_size))
             print("max number of batches: {}".format(max_batches))
+
+            if dry_run:
+                return
 
             if num_batches is None:
                 num_batches = max_batches
@@ -312,10 +358,30 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                 link_batch(df_files.iloc[b*batch_size:(b+1)*batch_size, :],
                            "{}batch-{}".format(target_path, b))
     else:
-        print("No zefys location (zefys-prefix) exit.")
-        pass
+        if batch_size is None:
+            if dry_run:
+                return
 
-    pass
+            download_batch(df_files, target_path)
+        else:
+
+            if not target_path.endswith("/"):
+                target_path += "/"
+
+            max_batches = int(np.ceil(len(df_files)/batch_size))
+            print("max number of batches: {}".format(max_batches))
+
+            if dry_run:
+                return
+
+            if num_batches is None:
+                num_batches = max_batches
+
+            num_batches = num_batches if start_batch + num_batches < max_batches else max_batches - start_batch
+
+            for b in range(start_batch, start_batch + num_batches):
+                download_batch(df_files.iloc[b*batch_size:(b+1)*batch_size, :],
+                           "{}batch-{}".format(target_path, b))
 
 
 def setup_ocr_database(conn):
