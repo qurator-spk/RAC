@@ -37,11 +37,29 @@ Options:
 ```
 Usage: zefys-downloader [OPTIONS] SCAN_IMAGES_FILE TARGET_PATH
 
+  The tool either creates symlinks to ZEFYS image files or downloads ZEFYS
+  image files in full resolution from the SBB content server. The option
+  --zefys-prefix controls if sysmlinks are used or rather the files are
+  downloaded from the content server. If --zefys-prefix is provided, it should
+  point to a directory where the ZEFYS NFS is mounted. Then the resulting
+  batch directories will only contain sysmlinks to the full resolution images.
+  If --zefys-prefix is omitted then the images would be downloaded. The
+  symlinks or files are stored in a batch directory structure where the option
+  --batch-size controls how many items are stored per batch directory. Which
+  newspapers and time periods are included can be controlled by the --zdb-id,
+  --year, --month ... options.
+
   SCAN_IMAGES_FILE: A TSV file containing of list of all ZEFYS page scan image
-  files that are to be considered. (see zefys-scanner)
+  files that are to be considered. This file can be created with zefys-
+  scanner.
+
+  TARGET_PATH: Either the name of the new directory where the symlinks or
+  downloaded images are stored if batch-size is omitted or a prefix for the
+  batch directories names to be created if batch-size is specified.
 
 Options:
-  --zefys-prefix TEXT
+  --zefys-prefix TEXT    ZEFYY NFS storage path. If specified only symlinks to
+                         this location will be created.
   --zdb-id TEXT          Consider only this ZDB-ID (can be supplied multiple
                          times).
   --year INTEGER         Consider only this year (can be supplied multiple
@@ -71,6 +89,7 @@ Options:
   --num-batches INTEGER  Create at most num-batches.
   --exclude-tsv PATH     Exclude the files listed in this TSV file. Can be
                          supplied multiple times
+  --dry-run              Do not actually do anything.
   --help                 Show this message and exit.
 ```
 ## zefys-ocr-database
