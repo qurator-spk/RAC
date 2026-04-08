@@ -221,13 +221,14 @@ def scanner(out_file, directory, zefys_filelist, pattern, follow_symlinks, subse
               help="Exclude the files listed in this TSV file. Can be supplied multiple times")
 @click.option('--dry-run', type=bool, is_flag=True, default=False,
               help="Do not actually do anything.")
+@click.option('--random', is_flag=True, default=False, help="")
 def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                year, start_year, stop_year,
                month, start_month, stop_month,
                day, start_day, stop_day,
                issue, start_issue, stop_issue,
                page, start_page, stop_page,
-               language, batch_size, start_batch, num_batches, exclude_tsv, dry_run):
+               language, batch_size, start_batch, num_batches, exclude_tsv, dry_run, random):
     """
     The tool either creates symlinks to ZEFYS image files or downloads ZEFYS image files in full resolution from the
     SBB content server. The option --zefys-prefix controls if sysmlinks are used or rather the files are downloaded
@@ -276,7 +277,10 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
 
     print("Sorting ...")
 
-    df_files = df_files.sort_values(by=['year', 'month', 'day', 'issue', 'page'])
+    if random:
+        df_files = df_files.iloc[np.random.permutation(len(df_files))]
+    else:
+        df_files = df_files.sort_values(by=['year', 'month', 'day', 'issue', 'page'])
 
     print("done.")
 
