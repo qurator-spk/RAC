@@ -26,6 +26,9 @@ from pathlib import Path
 
 from .zdb import get_zdb_meta_data  # , get_zdb_meta_dummy
 
+import random as rnd
+import string
+
 from somajo import SoMaJo, Tokenizer, SentenceSplitter
 
 from sentence_transformers import SentenceTransformer
@@ -39,7 +42,10 @@ def apply_filter(df, column_name, values, start, stop):
     if start is not None and stop is not None:
 
         df = df.loc[(df[column_name] >= start) & (df[column_name] < stop)]
-
+    elif start is not None:
+        df = df.loc[df[column_name] >= start]
+    elif stop is not None:
+        df = df.loc[df[column_name] < stop]
     elif len(values) > 0:
         df = df.loc[df[column_name].isin(values)]
 
@@ -222,22 +228,39 @@ def scanner(out_file, directory, zefys_filelist, pattern, follow_symlinks, subse
 @click.option('--dry-run', type=bool, is_flag=True, default=False,
               help="Do not actually do anything.")
 @click.option('--random', is_flag=True, default=False, help="")
+@click.option('--page-sequence-len', type=int, default=None,
+              help="")
+@click.option('--max-count', type=int, default=None,
+              help="")
+@click.option('--tag-csv-file', type=str, default=None, help="")
+@click.option('--scan-images-separator', type=str, default='\t', help="")
 def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
                year, start_year, stop_year,
                month, start_month, stop_month,
                day, start_day, stop_day,
                issue, start_issue, stop_issue,
                page, start_page, stop_page,
-               language, batch_size, start_batch, num_batches, exclude_tsv, dry_run, random):
+               language, batch_size, start_batch, num_batches, exclude_tsv, dry_run,
+               random, page_sequence_len, max_count, tag_csv_file, scan_images_separator):
     """
     The tool either creates symlinks to ZEFYS image files or downloads ZEFYS image files in full resolution from the
     SBB content server. The option --zefys-prefix controls if sysmlinks are used or rather the files are downloaded
     from the content server. If --zefys-prefix is provided, it should point to a directory where the ZEFYS NFS is
     mounted. Then the resulting batch directories will only contain sysmlinks to the full resolution images.
     If --zefys-prefix is omitted then the images would be downloaded.
+
     The symlinks or files are stored in a batch directory structure where the option --batch-size controls how many
     items are stored per batch directory. Which newspapers and time periods are included can be controlled by the
-    --zdb-id, --year, --month ... options.
+    --zdb-id, --year, --month ... options. If batch-size is not given then all items are stored flatly in one directory.
+
+    The --max-count option limits the number of returned items.
+    The --random option implements a uniform sampling from the items remaining after filtering.
+    For instance max-count=1000 and --random option combined create a uniform random sample of size 1000.
+
+    The --page_sequence_len option force a grouping of pages for instance page-sequence-len=3 returns random
+    page-sequences of length 3. When combined with tag-csv-file, a CSV file ist written that contains the grouping
+    information which can be imported into the image-search via the add_ZEFYS_tags tool that is also included in this
+    package.
 
     SCAN_IMAGES_FILE: A TSV file containing of list of all ZEFYS page scan image files that are to be considered.
     This file can be created with zefys-scanner.
@@ -246,12 +269,14 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
     is omitted or a prefix for the batch directories names to be created if batch-size is specified.
     """
 
-    df_files = pd.read_csv(scan_images_file, sep='\t', low_memory=False)
+    df_files = pd.read_csv(scan_images_file, sep=scan_images_separator, low_memory=False)
 
     df_files.year = df_files.year.astype(int)
     df_files.month = df_files.month.astype(int)
     df_files.day = df_files.day.astype(int)
     df_files.issue = df_files.issue.astype(int)
+
+    df_files = df_files.drop_duplicates(subset=["zdb", "year", "month", "day", "issue", "page"])
 
     print("Read {} entries from {} ...".format(len(df_files), scan_images_file))
 
@@ -273,8 +298,6 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
         df_files = df_files.loc[df_files.file.isnull()]
         df_files = df_files.drop(columns=["file"])
 
-    print("{} entries remain after filtering.".format(len(df_files)))
-
     print("Sorting ...")
 
     if random:
@@ -283,6 +306,63 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
         df_files = df_files.sort_values(by=['year', 'month', 'day', 'issue', 'page'])
 
     print("done.")
+
+    if page_sequence_len is not None:
+
+        k = 10
+        seq_ids = set()
+
+        def rnd_seq_id():
+
+            while True:
+                aid = ''.join(rnd.choices(string.ascii_uppercase + string.digits, k=k))
+
+                if aid not in seq_ids:
+                    seq_ids.add(aid)
+                    return aid
+
+        page_groups = []
+
+        for _, gr in tqdm(df_files.groupby(by=['zdb', 'year', 'month', 'day', 'issue'])):
+
+            gr = gr.sort_values(by=['year', 'month', 'day', 'issue', 'page']).reset_index(drop=True)
+
+            gr_ids = [rnd_seq_id() for _ in range(0, (page_sequence_len*(page_sequence_len-1))*(len(gr)+1))]
+
+            for offset in range(0, page_sequence_len):
+
+                gr["page_group".format(offset)] =\
+                        gr.index.map(lambda i: gr_ids[(offset*(page_sequence_len+1)) +
+                                                      ((i+offset) - ((i+offset) % page_sequence_len))])
+                page_groups.append(gr.copy())
+
+        page_groups = pd.concat(page_groups)
+
+        page_groups = page_groups.sort_values(by=['page_group', 'year', 'month', 'day', 'issue', 'page'])
+
+        page_groups = page_groups.drop_duplicates(subset=['page_group', 'year', 'month', 'day', 'issue', 'page'])
+
+        vc = page_groups.page_group.value_counts()
+
+        page_groups["count"] = page_groups.page_group.map(lambda pg: vc[pg])
+
+        page_groups = page_groups.loc[page_groups["count"] == page_sequence_len]
+
+        if max_count is not None:
+            page_groups = page_groups.iloc[0:max_count]
+
+        if tag_csv_file is not None:
+            page_groups.to_csv(tag_csv_file)
+
+        df_files = page_groups.drop_duplicates(subset=["zdb", "year", "month", "day", "issue", "page"])
+
+    elif max_count is not None:
+        df_files = df_files.iloc[0:max_count]
+
+    if tag_csv_file is not None and page_sequence_len is None:
+        df_files.to_csv(tag_csv_file)
+
+    print("{} entries remain after filtering.".format(len(df_files)))
 
     def link_batch(batch, tpath):
 
@@ -316,7 +396,7 @@ def downloader(scan_images_file, target_path, zefys_prefix, zdb_id,
 
             dest = "{}/{}-{}-{}-{}-{}-{}.{}".format(tpath, z, y, m, d, i, p, t)
 
-            image_url=None
+            image_url = None
             try:
                 image_url = \
                     ("https://content.staatsbibliothek-berlin.de/zefys/"
