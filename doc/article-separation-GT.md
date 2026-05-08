@@ -3,7 +3,7 @@
 * [W3C-JSON Export](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/w3c-anno.json) der Annotationen.
 * Aus dem W3C-JSON Vorprozessierte GT [TSV - Datei](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/gt.tsv). Dokumentation der Spalten siehe unten.
 * [Bild- und page-XML Dateien](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/data.zip) als ZIP-Archiv. 
-* [Fehlerreport] (http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/errors.md) der Compilation der W3C JSON Datei.
+* [Fehlerreport](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/errors.md) der Compilation der W3C JSON Datei.
 
 
 # TSV Format Article-Separation GT:
