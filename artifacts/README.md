@@ -26,4 +26,4 @@ Aktuell (Stand 26.2.2026) ist für ca 21% aller ZEFYS-Digitalisate neue state-of
 
 ## Königsberger Hartungsche Zeitung (komplett, 168562 Seiten)
 
-[SP-2812988X-OCR.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-2812988X-OCR.sqlite) (ca 6 GB)
+[SP-2812988X-OCR.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-2812988X-OCR.sqlite) (ca 33 GB)
