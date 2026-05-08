@@ -19,7 +19,7 @@
 * next_part: Wenn das Polygon Teil einer Sequenz ist, ist dies die ID des nächsten Polygons in der Sequenz.
   * Wenn dieses Polygon das Letzte der Sequenz ist ,dann gilt next_part="not_specified".
   * Wenn dieses Polygon des Letzte annotierte der Sequenz ist, aber weitere auf nicht annotierten Seiten liegen, dann gilt next_part=="unknown".
-* prev_part: Wenn das Polygon Teil einer Sequenz ist und es ein vorheriges Polygon gibt, ist dies die ID des vorherigen Polyhons. Ansonsten gilt prev_part="not_specified".
+* prev_part: Wenn das Polygon Teil einer Sequenz ist und es ein vorheriges Polygon gibt, ist dies die ID des vorherigen Polygons. Ansonsten gilt prev_part="not_specified".
 * created: Zeitstempel der Erzeugung des Polygons. Wenn die Sequenzen nach dem Zeitstempel des ersten Polygons der Sequenz sortiert werden, erhält man eine Lesereihenfolge über die Seite.
 * creator: Gibt an von wem das Polygon hinzugefügt wurde.
 * zdb : ZDB-ID der Zeitungsseite.
