@@ -43,11 +43,24 @@ Usage: zefys-downloader [OPTIONS] SCAN_IMAGES_FILE TARGET_PATH
   downloaded from the content server. If --zefys-prefix is provided, it should
   point to a directory where the ZEFYS NFS is mounted. Then the resulting
   batch directories will only contain sysmlinks to the full resolution images.
-  If --zefys-prefix is omitted then the images would be downloaded. The
-  symlinks or files are stored in a batch directory structure where the option
-  --batch-size controls how many items are stored per batch directory. Which
-  newspapers and time periods are included can be controlled by the --zdb-id,
-  --year, --month ... options.
+  If --zefys-prefix is omitted then the images would be downloaded.
+
+  The symlinks or files are stored in a batch directory structure where the
+  option --batch-size controls how many items are stored per batch directory.
+  Which newspapers and time periods are included can be controlled by the
+  --zdb-id, --year, --month ... options. If batch-size is not given then all
+  items are stored flatly in one directory.
+
+  The --max-count option limits the number of returned items. The --random
+  option implements a uniform sampling from the items remaining after
+  filtering. For instance max-count=1000 and --random option combined create a
+  uniform random sample of size 1000.
+
+  The --page_sequence_len option force a grouping of pages for instance page-
+  sequence-len=3 returns random page-sequences of length 3. When combined with
+  tag-csv-file, a CSV file ist written that contains the grouping information
+  which can be imported into the image-search via the add_ZEFYS_tags tool that
+  is also included in this package.
 
   SCAN_IMAGES_FILE: A TSV file containing of list of all ZEFYS page scan image
   files that are to be considered. This file can be created with zefys-
@@ -58,39 +71,52 @@ Usage: zefys-downloader [OPTIONS] SCAN_IMAGES_FILE TARGET_PATH
   batch directories names to be created if batch-size is specified.
 
 Options:
-  --zefys-prefix TEXT    ZEFYY NFS storage path. If specified only symlinks to
-                         this location will be created.
-  --zdb-id TEXT          Consider only this ZDB-ID (can be supplied multiple
-                         times).
-  --year INTEGER         Consider only this year (can be supplied multiple
-                         times).
-  --start-year INTEGER   Consider a time interval [start-year, stop-year[
-  --stop-year INTEGER    Consider a time interval [start-year, stop-year[
-  --month INTEGER        Consider only this month (can be supplied multiple
-                         times).
-  --start-month INTEGER  Consider a time interval [start-month, stop-month[
-  --stop-month INTEGER   Consider a time interval [start-month, stop-month[
-  --day INTEGER          Consider only this day (can be supplied multiple
-                         times).
-  --start-day INTEGER    Consider a time interval [start-day, stop-day[
-  --stop-day INTEGER     Consider a time interval [start-day, stop-day[
-  --issue INTEGER        Consider only this issue (can be supplied multiple
-                         times).
-  --start-issue INTEGER  Consider a time interval [start-issue, stop-issue[
-  --stop-issue INTEGER   Consider a time interval [start-issue, stop-issue[
-  --page INTEGER         Consider only this page (can be supplied multiple
-                         times).
-  --start-page INTEGER   Consider a page interval [start-page, stop-page[
-  --stop-page INTEGER    Consider a page interval [start-page, stop-page[
-  --language INTEGER     Consider only this language (can be supplied multiple
-                         times).
-  --batch-size INTEGER   Split into batches of this size.
-  --start-batch INTEGER  Ignore all batches before start-batch.
-  --num-batches INTEGER  Create at most num-batches.
-  --exclude-tsv PATH     Exclude the files listed in this TSV file. Can be
-                         supplied multiple times
-  --dry-run              Do not actually do anything.
-  --help                 Show this message and exit.
+  --zefys-prefix TEXT           ZEFYY NFS storage path. If specified only
+                                symlinks to this location will be created.
+  --zdb-id TEXT                 Consider only this ZDB-ID (can be supplied
+                                multiple times).
+  --year INTEGER                Consider only this year (can be supplied
+                                multiple times).
+  --start-year INTEGER          Consider a time interval [start-year, stop-
+                                year[
+  --stop-year INTEGER           Consider a time interval [start-year, stop-
+                                year[
+  --month INTEGER               Consider only this month (can be supplied
+                                multiple times).
+  --start-month INTEGER         Consider a time interval [start-month, stop-
+                                month[
+  --stop-month INTEGER          Consider a time interval [start-month, stop-
+                                month[
+  --day INTEGER                 Consider only this day (can be supplied
+                                multiple times).
+  --start-day INTEGER           Consider a time interval [start-day, stop-day[
+  --stop-day INTEGER            Consider a time interval [start-day, stop-day[
+  --issue INTEGER               Consider only this issue (can be supplied
+                                multiple times).
+  --start-issue INTEGER         Consider a time interval [start-issue, stop-
+                                issue[
+  --stop-issue INTEGER          Consider a time interval [start-issue, stop-
+                                issue[
+  --page INTEGER                Consider only this page (can be supplied
+                                multiple times).
+  --start-page INTEGER          Consider a page interval [start-page, stop-
+                                page[
+  --stop-page INTEGER           Consider a page interval [start-page, stop-
+                                page[
+  --language INTEGER            Consider only this language (can be supplied
+                                multiple times).
+  --batch-size INTEGER          Split into batches of this size.
+  --start-batch INTEGER         Ignore all batches before start-batch.
+  --num-batches INTEGER         Create at most num-batches.
+  --exclude-tsv PATH            Exclude the files listed in this TSV file. Can
+                                be supplied multiple times
+  --dry-run                     Do not actually do anything.
+  --random
+  --page-sequence-len INTEGER
+  --max-count INTEGER           Limits the number of returned items.
+  --tag-csv-file TEXT
+  --scan-images-separator TEXT
+  --help                        Show this message and exit.
 ```
 ## zefys-ocr-database
 ```
@@ -374,4 +400,23 @@ Options:
   --embedding-dim INTEGER
   --stop-at INTEGER
   --help                   Show this message and exit.
+```
+## download-w3c-annotation-images
+```
+Usage: download-w3c-annotation-images [OPTIONS] W3C_ANNO_JSON TARGET_DIR
+
+Options:
+  --from-zefys
+  --user TEXT
+  --password TEXT
+  --help           Show this message and exit.
+```
+## compile-article-separation-gt
+```
+Usage: compile-article-separation-gt [OPTIONS] W3C_ANNO_JSON OUT_TSV IMAGE_DIR
+                                     XML_DIR
+
+Options:
+  --check-only
+  --help        Show this message and exit.
 ```

@@ -5,6 +5,10 @@
 * [Bild- und page-XML Dateien](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/data.zip) als ZIP-Archiv. 
 * [Fehlerreport](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/errors.md) der Compilation der W3C JSON Datei.
 
+## CLI
+
+* [download-w3c-annotation-images](CLI.md#download-w3c-annotation-images)
+* [compile-artice-separation-gt](CLI.md#compile-artice-separation-gt)
 
 # TSV Format Article-Separation GT:
 
