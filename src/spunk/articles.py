@@ -116,8 +116,8 @@ def extract_regions(page_xml_file, page):
         min_y = np.inf
         max_x = 0.0
         max_y = 0.0
-        mean_center_x=0.0
-        mean_center_y=0.0
+        mean_center_x = 0.0
+        mean_center_y = 0.0
         mean_width = 0.0
         mean_height = 0.0
         count = 0
