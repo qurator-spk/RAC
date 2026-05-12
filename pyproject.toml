@@ -25,6 +25,7 @@ classifiers = [
 ]
 
 [project.scripts]
+match-article-sequences = "spunk.article_separation:match_article_sequences"
 compile-article-separation-gt = "spunk.article_separation:compile_article_separation_gt"
 download-w3c-annotation-images = "spunk.zefys:download_w3c_annotation_images"
 zefys-scanner = "spunk.zefys:scanner"

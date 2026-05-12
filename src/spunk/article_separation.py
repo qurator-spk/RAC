@@ -30,6 +30,9 @@ import random as rnd
 import string
 from pprint import pprint
 
+import shapely
+
+from shapely.validation import explain_validity
 
 has_next_part = {"article_head", "article_middle_part"}
 has_prev_part = {"article_tail", "article_middle_part"}
@@ -77,7 +80,11 @@ def page_iterate_text_lines(root):
 
 def page_iterate_coords(root):
 
-    for coords_elem in root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}Coords'):
+    for num, coords_elem in (
+            enumerate(root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}Coords'))):
+
+        if num > 0:
+            print("Warning multiple coords!")
 
         points = coords_elem.attrib['points']
 
@@ -94,8 +101,128 @@ def page_iterate_unicode(root):
         yield text_elem.text
 
 
-def text_line_sequence(xml_files, ):
-    pass
+def str2polgon(points):
+
+    x = [float(i) for i in points.replace(",", " ").split(" ")][0::2]
+    y = [float(i) for i in points.replace(",", " ").split(" ")][1::2]
+
+    points = [(a, b) for a, b in zip(x, y)]
+
+    poly = shapely.Polygon(points)
+
+    if not poly.is_valid:
+        return poly.convex_hull
+    else:
+        return poly
+
+
+def read_line_sequence(page_xml_file, page, is_start, sq_counter):
+
+    parser = ET.XMLParser(encoding='UTF-8')
+    tree = ElementTree.parse(page_xml_file, parser=parser)
+    root = tree.getroot()
+
+    order = page_get_reading_order(root)
+
+    text_lines = list()
+
+    for a_id, a_type, region_elem in page_iterate_text_regions(root):
+
+        for line_number, line_elem in enumerate(page_iterate_text_lines(region_elem)):
+
+            points = " ".join([p for p in page_iterate_coords(line_elem)])
+
+            x = [int(i) for i in points.replace(",", " ").split(" ")][0::2]
+            y = [int(i) for i in points.replace(",", " ").split(" ")][1::2]
+
+            text = " ".join([tc for tc in page_iterate_unicode(line_elem)])
+
+            if len(text) == 0:
+                continue
+
+            min_x = np.min(x)
+            min_y = np.min(y)
+
+            max_x = np.max(x)
+            max_y = np.max(y)
+
+            center_x = np.mean(x)
+            center_y = np.mean(y)
+            width = max(x) - min(x)
+            height = max(y) - min(y)
+
+            elem = (a_id, line_number, a_type, text, page, min_x, min_y, max_x, max_y, center_x, center_y, width, height, points)
+
+            text_lines.append(elem)
+
+    text_lines = pd.DataFrame(text_lines, columns=["id",  "line_number", "type", "text", "page", "min_x", "min_y", "max_x", "max_y",
+                                                   "mean_center_x", "mean_center_y", "mean_width", "mean_height",
+                                                   "points"])
+
+    text_lines = text_lines.merge(order, left_on="id", right_on="region_ref")
+
+    text_lines = text_lines.sort_values(by=["pos", "line_number"], ascending=True).drop(columns=['id', 'pos', 'region_ref'])
+
+    text_lines['page_sequence_num'] = sq_counter
+
+    return text_lines
+
+
+@click.command()
+@click.argument('gt_tsv_file', type=click.Path(exists=True))
+@click.argument('out-file', type=click.Path())
+def match_article_sequences(gt_tsv_file, out_file):
+    gt = pd.read_csv(gt_tsv_file, sep="\t")
+
+    page_sequence_counter = 0
+    line_sequences = list()
+    for idx, page_sequence_articles in tqdm(gt.groupby(["zdb", "year", "month", "day", "issue"])):
+
+        polygon_lookup = dict()
+
+        pages = page_sequence_articles[['xml_file', 'page']].drop_duplicates().\
+            sort_values(by='page', ascending=True).\
+            reset_index(drop=True)
+
+        pages['page_sequence_start'] = pages.page.diff() != 1.0
+        pages['page_sequence_num'] = page_sequence_counter + pages.page_sequence_start.cumsum()
+        page_sequence_counter += pages.page_sequence_start.cumsum()
+
+        line_sequence = pd.concat([read_line_sequence(xml_file, page, is_start, sq_counter)
+                                   for _, (xml_file, page, is_start, sq_counter) in pages.iterrows()]).\
+            reset_index(drop=True)
+
+        for pidx, coords in page_sequence_articles[['coords']].iterrows():
+            polygon_lookup[pidx] = str2polgon(coords.iloc[0])
+
+        article_index = list()
+        problematic_index = list()
+        for lidx, line_row in line_sequence.iterrows():
+
+            line_polygon = str2polgon(line_row.points)
+
+            matches = []
+            for _, as_row in page_sequence_articles.loc[page_sequence_articles.page == line_row.page].iterrows():
+                matches.append((as_row.name, shapely.intersection(polygon_lookup[as_row.name], line_polygon).area))
+
+            matches = pd.DataFrame(matches, columns=["as_row", "area"])
+
+            if not matches.area.max() > 0.0:
+                problematic_index.append(lidx)
+
+            article_index.append(matches.as_row.iloc[matches.area.idxmax()])
+
+        line_sequence = pd.concat([line_sequence,
+                                   page_sequence_articles.loc[article_index].drop(columns=['page']).reset_index(drop=True)], axis=1)
+
+        line_sequence['problematic'] = False
+        line_sequence.loc[problematic_index, 'problematic'] = True
+
+        line_sequences.append(line_sequence)
+
+    line_sequences = pd.concat(line_sequences).reset_index(drop=True)
+
+    line_sequences.to_csv(out_file, sep='\t')
 
 
 def evaluate_tags(bid, body, url):
@@ -220,7 +347,7 @@ def evaluate_coordinates(values):
 
         x, y, width, height = (float(f) for f in coords.split(','))
 
-        coords = [(x, y), (x+width, y), (x, y+height), (x + width, y + height)]
+        coords = [(x, y), (x+width, y), (x + width, y + height), (x, y+height)]
 
         coords = " ".join(["{},{}".format(x, y) for x, y in coords])
 

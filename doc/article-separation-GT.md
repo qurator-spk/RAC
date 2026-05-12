@@ -1,9 +1,16 @@
 # Article-Separation GT
 
 * [W3C-JSON Export](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/w3c-anno.json) der Annotationen.
-* Aus dem W3C-JSON Vorprozessierte GT [TSV - Datei](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/gt.tsv). Dokumentation der Spalten siehe unten.
-* [Bild- und page-XML Dateien](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/data.zip) als ZIP-Archiv. 
-* [Fehlerreport](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/errors.md) der Compilation der W3C JSON Datei.
+* Aus dem W3C-JSON Vorprozessierte Artikel-GT [TSV - Datei](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/gt.tsv). 
+  Diese Datei beschreibt lediglich die annotierten Artikelpolygone. Dokumentation der Spalten siehe unten.
+  Sie wird mit dem [compile-artice-separation-gt](CLI.md#compile-artice-separation-gt) CLI-Befehl aus der W3C-JSON Datei erzeugt.
+  Dabei entsteht auch ein [Fehlerreport](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/errors.md).
+* Mit dem [download-w3c-annotation-images](CLI.md#download-w3c-annotation-images) CLI-Befehl können alle in der W3C-JSON Datei referenzierten Bilder
+  heruntergeladen werden. Hiergibt es diese Bilder und auch passende PAGE-XML Dateien die Layout und OCR enthalten und mit Eynollah erzeugt wurden 
+  als  [ZIP-Archiv](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/data.zip).
+* Die Artikel-GT kann mit dem [match-article-sequences](CLI.md#match-article-sequences) CLI-Befehl auf die PAGE-XML Dateien gemappt werden.
+  Für Eynollah Layout/OCR gibt es das Resultat [hier](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/gt-eynollah-layout-ocr.tsv).
+  Dokumenation dieser Datei folgt. 
 
 ## CLI
 
@@ -11,7 +18,7 @@
 * [compile-artice-separation-gt](CLI.md#compile-artice-separation-gt)
 
 # TSV Format Article-Separation GT:
-
+* Aktuell enthält diese [Datei](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/gt.tsv) 4518, die jeweils ein Artikelpolygon beschreiben.
 * id : ID eines einzelnen Artikelpolygons
 * sequence_id: ID einer Polygonsequenz die insgesamt einem Artikel entspricht. Diese Sequenz-ID gleicht der ID des ersten Polygons der Sequenz für alle Polygone die zur Sequenz gehören.
 * sequence_num: Gibt an an welcher Stelle das Polygon innerhalb der Sequenz steht. 
@@ -32,3 +39,7 @@
 * day : Erscheinungstag.
 * issue: Ausgabe.
 * page: Seite.
+
+# TSV Format Artikel-GT + Layout + OCR
+* Aktuell enthält diese [Datei](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/gt-eynollah-layout-ocr.tsv) 109730 Zeilen, die jeweils eine Textzeile sowie deren Zuordnung zu einem Artikelpolygon beschreiben.
+* ...

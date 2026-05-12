@@ -420,3 +420,10 @@ Options:
   --check-only
   --help        Show this message and exit.
 ```
+## match-article-sequences
+```
+Usage: match-article-sequences [OPTIONS] GT_TSV_FILE OUT_FILE
+
+Options:
+  --help  Show this message and exit.
+```
