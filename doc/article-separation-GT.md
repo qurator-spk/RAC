@@ -16,6 +16,7 @@
 
 * [download-w3c-annotation-images](CLI.md#download-w3c-annotation-images)
 * [compile-artice-separation-gt](CLI.md#compile-artice-separation-gt)
+* [match-article-sequences](CLI.md#match-article-sequences)
 
 # TSV Format Article-Separation GT:
 * Aktuell enthält diese [Datei](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/gt.tsv) 4518, die jeweils ein Artikelpolygon beschreiben.
