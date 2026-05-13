@@ -155,13 +155,15 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter):
 
             text_lines.append(elem)
 
-    text_lines = pd.DataFrame(text_lines, columns=["id",  "line_number", "type", "text", "page", "min_x", "min_y", "max_x", "max_y",
+    text_lines = pd.DataFrame(text_lines, columns=["id",  "line_number", "type", "text", "page", "min_x", "min_y",
+                                                   "max_x", "max_y",
                                                    "mean_center_x", "mean_center_y", "mean_width", "mean_height",
                                                    "points"])
 
     text_lines = text_lines.merge(order, left_on="id", right_on="region_ref")
 
-    text_lines = text_lines.sort_values(by=["pos", "line_number"], ascending=True).drop(columns=['id', 'pos', 'region_ref'])
+    text_lines = text_lines.sort_values(by=["pos", "line_number"], ascending=True).\
+        drop(columns=['id', 'pos', 'region_ref'])
 
     text_lines['page_sequence_num'] = sq_counter
 
@@ -186,7 +188,10 @@ def match_article_sequences(gt_tsv_file, out_file):
 
         pages['page_sequence_start'] = pages.page.diff() != 1.0
         pages['page_sequence_num'] = page_sequence_counter + pages.page_sequence_start.cumsum()
-        page_sequence_counter += pages.page_sequence_start.cumsum()
+        page_sequence_counter += pages.page_sequence_start.cumsum().max()
+
+        if len(pages.loc[pages.page_sequence_num.isnull()]) > 0:
+            import ipdb;ipdb.set_trace()
 
         line_sequence = pd.concat([read_line_sequence(xml_file, page, is_start, sq_counter)
                                    for _, (xml_file, page, is_start, sq_counter) in pages.iterrows()]).\
@@ -195,8 +200,7 @@ def match_article_sequences(gt_tsv_file, out_file):
         for pidx, coords in page_sequence_articles[['coords']].iterrows():
             polygon_lookup[pidx] = str2polgon(coords.iloc[0])
 
-        article_index = list()
-        problematic_index = list()
+        matching_info = list()
         for lidx, line_row in line_sequence.iterrows():
 
             line_polygon = str2polgon(line_row.points)
@@ -207,16 +211,24 @@ def match_article_sequences(gt_tsv_file, out_file):
 
             matches = pd.DataFrame(matches, columns=["as_row", "area"])
 
+            article_index = matches.as_row.iloc[matches.area.idxmax()]
+            problematic = False
             if not matches.area.max() > 0.0:
-                problematic_index.append(lidx)
+                problematic = True
 
-            article_index.append(matches.as_row.iloc[matches.area.idxmax()])
+            match_score = matches.area.max()/line_polygon.area
+            num_matches = len(matches.loc[matches.area > 0.0])
+
+            matching_info.append((article_index, problematic, match_score, num_matches))
+
+        matching_info = pd.DataFrame(matching_info,
+                                     columns=["article_index", "problematic", "match_score", "num_matches"])
 
         line_sequence = pd.concat([line_sequence,
-                                   page_sequence_articles.loc[article_index].drop(columns=['page']).reset_index(drop=True)], axis=1)
-
-        line_sequence['problematic'] = False
-        line_sequence.loc[problematic_index, 'problematic'] = True
+                                   page_sequence_articles.loc[matching_info.article_index].\
+                                   drop(columns=['page']).\
+                                   reset_index(drop=True),
+                                   matching_info.drop(columns=['article_index'])], axis=1)
 
         line_sequences.append(line_sequence)
 
