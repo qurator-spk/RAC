@@ -28,6 +28,7 @@ from .zdb import get_zdb_meta_data  # , get_zdb_meta_dummy
 
 import random as rnd
 import string
+
 from pprint import pprint
 
 import shapely
@@ -58,7 +59,7 @@ def page_get_reading_order(root):
 
         order.append((pos, region_ref))
 
-    return pd.DataFrame(order, columns=["pos", "region_ref"])
+    return pd.DataFrame(order, columns=["reading_order", "region_ref"])
 
 
 def page_iterate_text_regions(root):
@@ -155,26 +156,41 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter):
 
             text_lines.append(elem)
 
-    text_lines = pd.DataFrame(text_lines, columns=["id",  "line_number", "type", "text", "page", "min_x", "min_y",
+    text_lines = pd.DataFrame(text_lines, columns=["region_ref",  "line_number", "type", "text", "page", "min_x", "min_y",
                                                    "max_x", "max_y",
                                                    "mean_center_x", "mean_center_y", "mean_width", "mean_height",
-                                                   "points"])
+                                                   "line_coords"])
 
-    text_lines = text_lines.merge(order, left_on="id", right_on="region_ref")
+    text_lines = text_lines.merge(order, on="region_ref").drop(columns=['region_ref'])
 
-    text_lines = text_lines.sort_values(by=["pos", "line_number"], ascending=True).\
-        drop(columns=['id', 'pos', 'region_ref'])
+    text_lines = text_lines.sort_values(by=["reading_order", "line_number"], ascending=True).reset_index(drop=True)
 
-    text_lines['page_sequence_num'] = sq_counter
+    text_lines['page_sequence'] = sq_counter
+    text_lines['start_of_page_sequence'] = False
+    text_lines.loc[0, "start_of_page_sequence"] = is_start
 
     return text_lines
 
+
+def evaluate_article_sequences(sequence_tsv_file):
+    df = pd.read_csv(sequence_tsv_file, sep='\t')
+
+    df['prev_sequence_id'] = df.shift(1).sequence_id
+
+    df['prev_sequence_id'] = df.shift(1).sequence_id
+
+    tmp = pd.DataFrame([(sequence_id, next_sequence_id, len(tmp)) for (sequence_id, next_sequence_id), tmp in
+                        df.groupby(['sequence_id', 'next_sequence_id'])], columns=["sid", "nid", "occ"])
+
+    tmp2 = tmp.loc[tmp.sid != tmp.nid]
+
+    out_of_context_changes = tmp2.sid.value_counts().value_counts()
 
 @click.command()
 @click.argument('gt_tsv_file', type=click.Path(exists=True))
 @click.argument('out-file', type=click.Path())
 def match_article_sequences(gt_tsv_file, out_file):
-    gt = pd.read_csv(gt_tsv_file, sep="\t")
+    gt = pd.read_csv(gt_tsv_file, sep="\t").rename(columns={'coords': 'article_coords'})
 
     page_sequence_counter = 0
     line_sequences = list()
@@ -187,35 +203,32 @@ def match_article_sequences(gt_tsv_file, out_file):
             reset_index(drop=True)
 
         pages['page_sequence_start'] = pages.page.diff() != 1.0
-        pages['page_sequence_num'] = page_sequence_counter + pages.page_sequence_start.cumsum()
+        pages['page_sequence'] = page_sequence_counter + pages.page_sequence_start.cumsum()
         page_sequence_counter += pages.page_sequence_start.cumsum().max()
 
-        if len(pages.loc[pages.page_sequence_num.isnull()]) > 0:
+        if len(pages.loc[pages.page_sequence.isnull()]) > 0:
             import ipdb;ipdb.set_trace()
 
         line_sequence = pd.concat([read_line_sequence(xml_file, page, is_start, sq_counter)
                                    for _, (xml_file, page, is_start, sq_counter) in pages.iterrows()]).\
             reset_index(drop=True)
 
-        for pidx, coords in page_sequence_articles[['coords']].iterrows():
-            polygon_lookup[pidx] = str2polgon(coords.iloc[0])
+        for ap_idx, (article_coords,) in page_sequence_articles[['article_coords']].iterrows():
+            polygon_lookup[ap_idx] = str2polgon(article_coords)
 
         matching_info = list()
-        for lidx, line_row in line_sequence.iterrows():
+        for _, (page, line_coords) in line_sequence[['page', 'line_coords']].iterrows():
 
-            line_polygon = str2polgon(line_row.points)
+            line_polygon = str2polgon(line_coords)
 
             matches = []
-            for _, as_row in page_sequence_articles.loc[page_sequence_articles.page == line_row.page].iterrows():
+            for _, as_row in page_sequence_articles.loc[page_sequence_articles.page == page].iterrows():
                 matches.append((as_row.name, shapely.intersection(polygon_lookup[as_row.name], line_polygon).area))
 
             matches = pd.DataFrame(matches, columns=["as_row", "area"])
 
             article_index = matches.as_row.iloc[matches.area.idxmax()]
-            problematic = False
-            if not matches.area.max() > 0.0:
-                problematic = True
-
+            problematic = False if matches.area.max() > 0.0 else True
             match_score = matches.area.max()/line_polygon.area
             num_matches = len(matches.loc[matches.area > 0.0])
 

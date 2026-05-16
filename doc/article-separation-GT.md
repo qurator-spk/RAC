@@ -7,10 +7,15 @@
   Dabei entsteht auch ein [Fehlerreport](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/errors.md).
 * Mit dem [download-w3c-annotation-images](CLI.md#download-w3c-annotation-images) CLI-Befehl können alle in der W3C-JSON Datei referenzierten Bilder
   heruntergeladen werden. Hiergibt es diese Bilder und auch passende PAGE-XML Dateien die Layout und OCR enthalten und mit Eynollah erzeugt wurden 
-  als  [ZIP-Archiv](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/data.zip).
+  als  [ZIP-Archiv](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/SBB.zip).
 * Die Artikel-GT kann mit dem [match-article-sequences](CLI.md#match-article-sequences) CLI-Befehl auf die PAGE-XML Dateien gemappt werden.
   Für Eynollah Layout/OCR gibt es das Resultat [hier](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/gt-eynollah-layout-ocr.tsv).
   Dokumenation dieser Datei folgt. 
+
+## Newseye 
+
+* Eynollah Layout+OCR für die Newseye-BnF-Zeitungsseiten als [ZIP-Archiv](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/BnF.zip).
+* Eynollah Layout+OCR für die Newseye-NLF-Zeitungsseiten als [ZIP-Archiv](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/NLF.zip).
 
 ## CLI
 
