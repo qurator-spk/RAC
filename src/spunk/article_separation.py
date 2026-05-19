@@ -1,39 +1,31 @@
-import io
 
 import click
 import os
 
 import numpy as np
 import pandas as pd
-from sympy.vector.implicitregion import conic_coeff
 
 from tqdm import tqdm
 import re
 import json
 from fnmatch import fnmatch
-import sqlite3
-import zipfile
 
-import requests
 import urllib
 
 from lxml import etree as ET
 import xml.etree.ElementTree as ElementTree
-
-from .parallel import run as prun
-
-from pathlib import Path
-
-from .zdb import get_zdb_meta_data  # , get_zdb_meta_dummy
-
-import random as rnd
-import string
 
 from pprint import pprint
 
 import shapely
 
 from shapely.validation import explain_validity
+import uuid
+
+from pprint import pprint
+
+from .parallel import run as prun
+
 
 has_next_part = {"article_head", "article_middle_part"}
 has_prev_part = {"article_tail", "article_middle_part"}
@@ -48,12 +40,14 @@ boolean_attributs = {"toc"}
 sequence_starters = {"article", "article_head", "heading", "advertisement",
                      "page_header", "page_footer", "title_page_header", "title_page_footer", "obituary"}
 
+psp = "{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}"
+
 
 def page_get_reading_order(root):
 
     order = []
 
-    for order_elem in root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}RegionRefIndexed'):
+    for order_elem in root.iter(f'{psp}RegionRefIndexed'):
         pos = int(order_elem.attrib['index'])
         region_ref = order_elem.attrib['regionRef']
 
@@ -64,17 +58,23 @@ def page_get_reading_order(root):
 
 def page_iterate_text_regions(root):
 
-    for region_elem in root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}TextRegion'):
+    for region_elem in root.iter(f'{psp}TextRegion'):
 
         the_id = region_elem.attrib['id']
-        the_type = region_elem.attrib['type']
+
+        if 'type' in region_elem.attrib:
+            the_type = region_elem.attrib['type']
+        elif the_id.startswith("TableCell_"):
+            the_type = "table_cell"
+        else:
+            raise RuntimeError("Unsupported type of TextRegion")
 
         yield the_id, the_type, region_elem
 
 
 def page_iterate_text_lines(root):
 
-    for line_elem in root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}TextLine'):
+    for line_elem in root.iter(f'{psp}TextLine'):
 
         yield line_elem
 
@@ -82,7 +82,7 @@ def page_iterate_text_lines(root):
 def page_iterate_coords(root):
 
     for num, coords_elem in (
-            enumerate(root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}Coords'))):
+            enumerate(root.findall(f'{psp}Coords'))):
 
         if num > 0:
             print("Warning multiple coords!")
@@ -94,12 +94,32 @@ def page_iterate_coords(root):
 
 def page_iterate_unicode(root):
 
-    for text_elem in root.iter('{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}Unicode'):
+    for text_elem in root.iter(f'{psp}Unicode'):
         if text_elem.text is None:
-            # print("No unicode!")
+            # print("Warning no unicode!")
             continue
 
         yield text_elem.text
+
+
+def get_coords(elem):
+    points = " ".join([p for p in page_iterate_coords(elem)])
+
+    x = [int(i) for i in points.replace(",", " ").split(" ")][0::2]
+    y = [int(i) for i in points.replace(",", " ").split(" ")][1::2]
+
+    min_x = np.min(x)
+    min_y = np.min(y)
+
+    max_x = np.max(x)
+    max_y = np.max(y)
+
+    center_x = np.mean(x)
+    center_y = np.mean(y)
+    width = max(x) - min(x)
+    height = max(y) - min(y)
+
+    return x, y, points, min_x, min_y, max_x, max_y, center_x, center_y, width, height
 
 
 def str2polgon(points):
@@ -117,7 +137,8 @@ def str2polgon(points):
         return poly
 
 
-def read_line_sequence(page_xml_file, page, is_start, sq_counter):
+# noinspection PyTypeChecker
+def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions=False):
 
     parser = ET.XMLParser(encoding='UTF-8')
     tree = ElementTree.parse(page_xml_file, parser=parser)
@@ -126,77 +147,307 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter):
     order = page_get_reading_order(root)
 
     text_lines = list()
+    text_regions = list()
+    custom = list()
 
     for a_id, a_type, region_elem in page_iterate_text_regions(root):
 
+        x, y, points, min_x, min_y, max_x, max_y, center_x, center_y, width, height = get_coords(region_elem)
+        region_id = uuid.uuid4()
+
+        text_regions.append((region_id, a_id, a_type, page, min_x, min_y, max_x, max_y, center_x,
+                             center_y, width, height, points))
+
         for line_number, line_elem in enumerate(page_iterate_text_lines(region_elem)):
 
-            points = " ".join([p for p in page_iterate_coords(line_elem)])
-
-            x = [int(i) for i in points.replace(",", " ").split(" ")][0::2]
-            y = [int(i) for i in points.replace(",", " ").split(" ")][1::2]
+            x, y, points, min_x, min_y, max_x, max_y, center_x, center_y, width, height = get_coords(line_elem)
 
             text = " ".join([tc for tc in page_iterate_unicode(line_elem)])
 
             if len(text) == 0:
                 continue
 
-            min_x = np.min(x)
-            min_y = np.min(y)
+            text_lines.append((region_id, a_id, line_number, a_type, text, page, min_x, min_y, max_x, max_y,
+                               center_x, center_y, width, height, points))
 
-            max_x = np.max(x)
-            max_y = np.max(y)
+            if 'custom' in line_elem.attrib:
 
-            center_x = np.mean(x)
-            center_y = np.mean(y)
-            width = max(x) - min(x)
-            height = max(y) - min(y)
+                if m := re.match("readingOrder {index:([0-9]+);} structure {id:a([0-9]+); type:article;}",
+                                 line_elem.attrib['custom']):
 
-            elem = (a_id, line_number, a_type, text, page, min_x, min_y, max_x, max_y, center_x, center_y, width, height, points)
+                    line_reading_order, article_id = m.groups()
+                    custom.append((region_id, line_number, line_reading_order, f"{sq_counter}_{page}_{article_id}"))
+                else:
+                    # print(f"Custom attrib does not match {line_elem.attrib['custom']}. File: {page_xml_file}.")
+                    pass
 
-            text_lines.append(elem)
+    text_regions = pd.DataFrame(text_regions, columns=["rid",  "region_ref", "type", "page",
+                                                       "min_x", "min_y",
+                                                       "max_x", "max_y",
+                                                       "mean_center_x", "mean_center_y",
+                                                       "mean_width", "mean_height",
+                                                       "region_coords"])
 
-    text_lines = pd.DataFrame(text_lines, columns=["region_ref",  "line_number", "type", "text", "page", "min_x", "min_y",
+    text_lines = pd.DataFrame(text_lines, columns=["rid", "region_ref", "line_number", "type", "text", "page",
+                                                   "min_x", "min_y",
                                                    "max_x", "max_y",
-                                                   "mean_center_x", "mean_center_y", "mean_width", "mean_height",
+                                                   "mean_center_x", "mean_center_y",
+                                                   "mean_width", "mean_height",
                                                    "line_coords"])
+    if len(custom) > 0:
 
-    text_lines = text_lines.merge(order, on="region_ref").drop(columns=['region_ref'])
+        custom = pd.DataFrame(custom, columns=["rid", "line_number", "line_reading_order", "article_id"])
+
+        text_regions = text_regions.merge(custom[['rid', 'article_id']], on="rid", how="left")
+
+        no_article_id = text_regions.article_id.isnull()
+        if no_article_id.sum() > 0:
+            # print(f"Warning: {text_regions.article_id.isnull().sum()} regions do not have an article_id")
+            text_regions.loc[no_article_id, "article_id"] = "unknown"
+
+    text_lines = text_lines.merge(order, on="region_ref").drop(columns=["region_ref"])
+    text_regions = text_regions.merge(order, on="region_ref").drop(columns=["region_ref"])
+
+    text_regions = text_regions.drop_duplicates().sort_values(by=["reading_order"]).reset_index(drop=True)
 
     text_lines = text_lines.sort_values(by=["reading_order", "line_number"], ascending=True).reset_index(drop=True)
 
     text_lines['page_sequence'] = sq_counter
+    text_regions['page_sequence'] = sq_counter
+
+    page_xml_file = os.path.basename(page_xml_file)
+    text_lines['xml_file'] = page_xml_file
+    text_regions['xml_file'] = page_xml_file
+
     text_lines['start_of_page_sequence'] = False
     text_lines.loc[0, "start_of_page_sequence"] = is_start
+
+    if return_regions:
+        return text_lines, text_regions
 
     return text_lines
 
 
-def evaluate_article_sequences(sequence_tsv_file):
-    df = pd.read_csv(sequence_tsv_file, sep='\t')
+@click.command()
+@click.argument('gt_tsv_file', type=click.Path(exists=True))
+@click.argument('match_tsv_file', type=click.Path(exists=True))
+def evaluate_matching_result(gt_tsv_file, match_tsv_file):
+
+    gt = pd.read_csv(gt_tsv_file, sep='\t')
+
+    print(f"Number of articles in groundtruth: {len(gt.sequence_id.unique())}")
+
+    print("Distribution of tags: ")
+
+    pprint(gt.tag.value_counts())
+
+    df = pd.read_csv(match_tsv_file, sep='\t', low_memory=False)
+
+    print(f"Number of text lines in XML files {len(df)}")
 
     df['prev_sequence_id'] = df.shift(1).sequence_id
 
-    df['prev_sequence_id'] = df.shift(1).sequence_id
+    df['next_sequence_id'] = df.shift(-1).sequence_id
 
-    tmp = pd.DataFrame([(sequence_id, next_sequence_id, len(tmp)) for (sequence_id, next_sequence_id), tmp in
-                        df.groupby(['sequence_id', 'next_sequence_id'])], columns=["sid", "nid", "occ"])
+    sequence_next_combis = pd.DataFrame([(sequence_id, next_sequence_id, len(tmp))
+                                        for (sequence_id, next_sequence_id), tmp in
+                                        df.groupby(['sequence_id', 'next_sequence_id'])],
+                                        columns=["sid", "nid", "occ"])
 
-    tmp2 = tmp.loc[tmp.sid != tmp.nid]
+    between_sequence_jumps = sequence_next_combis.loc[sequence_next_combis.sid != sequence_next_combis.nid]
 
-    out_of_context_changes = tmp2.sid.value_counts().value_counts()
+    per_sequence = between_sequence_jumps.sid.value_counts()
+
+    out_of_context_changes = pd.DataFrame(per_sequence.value_counts()).\
+        rename(columns={"count": "#articles"}).reset_index().rename(columns={"count": "# context switches"})
+
+    pprint(out_of_context_changes)
+
+    pprint(df.num_matches.value_counts())
+
+    #import  ipdb;ipdb.set_trace()
+
+
+@click.command()
+@click.argument('directory', type=click.Path(exists=True))
+@click.argument('out-file', type=click.Path())
+@click.option('--pattern', type=str, default="*.xml")
+@click.option('--follow-symlinks', type=bool, is_flag=True, default=False)
+@click.option('--mode', type=click.Choice(['bnf', 'nlf']), default="bnf")
+def extract_article_separation(directory, out_file, pattern, follow_symlinks, mode):
+
+    def file_it(to_scan):
+        for af in os.scandir(to_scan):
+            try:
+                if af.is_dir(follow_symlinks=follow_symlinks):
+                    for g in file_it(af):
+                        yield g
+                else:
+                    if not fnmatch(af.path, pattern):
+                        continue
+                    yield af.path
+            except NotADirectoryError:
+                continue
+
+    _file_it = tqdm(file_it(directory))
+
+    df = pd.DataFrame([(file,) for file in _file_it], columns=['xml_file'])
+
+    if mode == "bnf":
+        df[['year', 'month', 'day', 'issue', 'page']] = df.xml_file.str.extract("./(.{4})(.{2})(.{2})_(.{1})-(.{4}).")
+    elif mode == "nlf":
+        df[['fid', 'page', 'lid']] = df.xml_file.str.extract("./([0-9]+)_([0-9]+)_([0-9]+).")
+
+        df['zdb'] = "XXXXXX"
+        df['year'] = df.fid.astype(int)
+        df['month'] = df.lid.astype(int)
+        df['day'] = 1
+        df['issue'] = 1
+        df['page'] = df.page.astype(int)
+    else:
+        raise RuntimeError("Unknown mode.")
+
+    print(f"Number of scanned XML files: {len(df)}")
+
+    df = df.dropna()
+
+    print(f"Number of scanned XML files that match filename convention: {len(df)}")
+
+    if len(df) < 1:
+        return
+
+    df[['year', 'month', 'day', 'issue', 'page']] = df[['year', 'month', 'day', 'issue', 'page']].astype(int)
+
+    group_columns = ['year', 'month', 'day', 'issue']
+
+    page_sequence_counter = 0
+    region_sequences = list()
+    for group_index, group in tqdm(df.groupby(group_columns)):
+
+        pages = group[['xml_file', 'page']].drop_duplicates(). \
+            sort_values(by='page', ascending=True). \
+            reset_index(drop=True)
+
+        pages['page_sequence_start'] = pages.page.diff() != 1.0
+        pages['page_sequence'] = page_sequence_counter + pages.page_sequence_start.cumsum()
+        page_sequence_counter += pages.page_sequence_start.cumsum().max()
+
+        pages = pages.sort_values(by='page')
+
+        text_region_sequence = list()
+        for _, row in pages.iterrows():
+            text_lines, text_regions =\
+                read_line_sequence(row.xml_file, row.page, row.page_sequence_start, row.page_sequence,
+                                   return_regions=True)
+
+            text_regions['xml_file'] = os.path.basename(row.xml_file)
+            text_regions[group_columns] = group_index
+            text_region_sequence.append(text_regions)
+
+        region_sequences.append(pd.concat(text_region_sequence).reset_index(drop=True))
+
+    region_sequences = pd.concat(region_sequences).reset_index(drop=True)
+
+    unknown_article = (region_sequences.article_id == "unknown")
+
+    print(f"Dropping {unknown_article.sum()} regions due to unknown article_id")
+
+    region_sequences = region_sequences.loc[~unknown_article]
+
+    assert (len(region_sequences[['rid', 'article_id']].drop_duplicates()) == len(region_sequences[['rid',
+                                                                                                    'article_id']]))
+
+    articles_per_region = []
+    for rid, grp in region_sequences.groupby('rid'):
+        articles_per_region.append((rid, len(grp.article_id.unique())))
+
+    articles_per_region = pd.DataFrame(articles_per_region, columns=["rid", "apr"])
+
+    # noinspection PyUnresolvedReferences
+    assert (articles_per_region.apr == 1).sum() == len(articles_per_region)
+
+    region_sequences[['next_part']] = region_sequences[['rid']].shift(-1)
+    region_sequences[['prev_part']] = region_sequences[['rid']].shift(1)
+
+    starters = region_sequences.article_id != region_sequences[['article_id']].shift(1).article_id
+
+    ends = region_sequences.article_id != region_sequences[['article_id']].shift(-1).article_id
+
+    assert len(region_sequences.article_id.unique()) == len(region_sequences.loc[starters].article_id.unique())
+    assert len(region_sequences.article_id.unique()) == len(region_sequences.loc[ends].article_id.unique())
+
+    region_sequences.loc[starters, 'prev_part'] = 'not_specified'
+    region_sequences.loc[ends, 'next_part'] = 'not_specified'
+
+    sequences = region_sequences[['rid', 'article_id']].drop_duplicates(subset=['article_id'], keep='first').\
+        rename(columns={'rid': 'sequence_id'}).reset_index(drop=True)
+
+    region_sequences = region_sequences.merge(sequences, on="article_id").rename(columns={'rid': 'id',
+                                                                                          'region_coords': 'coords'})
+
+    region_sequences['tag'] = "article_middle_part"
+    region_sequences.loc[starters, 'tag'] = "article_head"
+    region_sequences.loc[ends, 'tag'] = "article_tail"
+    region_sequences.loc[starters & ends, 'tag'] = "article"
+    region_sequences['zdb'] = 'XXXXX'
+
+    region_sequences = region_sequences[['id', 'sequence_id', 'xml_file', 'coords', 'tag', 'next_part', 'prev_part',
+                                         'zdb', 'year', 'month', 'day', 'issue', 'page']]
+
+    print("Number of regions: {}".format(len(region_sequences)))
+    print("Number of article sequences: {}".format(len(region_sequences.sequence_id.unique())))
+
+    region_sequences.to_csv(out_file, sep='\t')
+
+
+class MatchTask:
+
+    polygon_lookup = dict()
+
+    def __init__(self, line_coords, page_polygons):
+
+        self._line_coords = line_coords
+        self._page_polygons = page_polygons
+
+    def __call__(self, *args, **kwargs):
+
+        line_polygon = str2polgon(self._line_coords)
+
+        matches = []
+        for _, as_row in self._page_polygons.iterrows():
+            matches.append((as_row.name,
+                            shapely.intersection(MatchTask.polygon_lookup[as_row.name], line_polygon).area))
+
+        matches = pd.DataFrame(matches, columns=["as_row", "area"])
+
+        article_index = matches.as_row.iloc[matches.area.idxmax()]
+        problematic = False if matches.area.max() > 0.0 else True
+        match_score = matches.area.max() / line_polygon.area
+        num_matches = len(matches.loc[matches.area > 0.0])
+
+        return article_index, problematic, match_score, num_matches
+
+    @staticmethod
+    def initialize(article_coords):
+        for ap_idx, (article_coords,) in article_coords.iterrows():
+            MatchTask.polygon_lookup[ap_idx] = str2polgon(article_coords)
+
 
 @click.command()
 @click.argument('gt_tsv_file', type=click.Path(exists=True))
+@click.argument('xml_dir', type=click.Path(exists=True))
 @click.argument('out-file', type=click.Path())
-def match_article_sequences(gt_tsv_file, out_file):
+def match_article_sequences(gt_tsv_file, xml_dir, out_file):
+
+    xml_dir = xml_dir if xml_dir.endswith('/') else xml_dir + "/"
+
     gt = pd.read_csv(gt_tsv_file, sep="\t").rename(columns={'coords': 'article_coords'})
 
     page_sequence_counter = 0
     line_sequences = list()
-    for idx, page_sequence_articles in tqdm(gt.groupby(["zdb", "year", "month", "day", "issue"])):
+    for idx, page_sequence_articles in tqdm(gt.groupby(["zdb", "year", "month", "day", "issue"]), leave=False):
 
-        polygon_lookup = dict()
+        # polygon_lookup = dict()
 
         pages = page_sequence_articles[['xml_file', 'page']].drop_duplicates().\
             sort_values(by='page', ascending=True).\
@@ -206,31 +457,22 @@ def match_article_sequences(gt_tsv_file, out_file):
         pages['page_sequence'] = page_sequence_counter + pages.page_sequence_start.cumsum()
         page_sequence_counter += pages.page_sequence_start.cumsum().max()
 
-        if len(pages.loc[pages.page_sequence.isnull()]) > 0:
-            import ipdb;ipdb.set_trace()
+        assert len(pages.loc[pages.page_sequence.isnull()]) == 0
 
-        line_sequence = pd.concat([read_line_sequence(xml_file, page, is_start, sq_counter)
+        line_sequence = pd.concat([read_line_sequence(xml_dir + xml_file, page, is_start, sq_counter)
                                    for _, (xml_file, page, is_start, sq_counter) in pages.iterrows()]).\
             reset_index(drop=True)
 
-        for ap_idx, (article_coords,) in page_sequence_articles[['article_coords']].iterrows():
-            polygon_lookup[ap_idx] = str2polgon(article_coords)
-
         matching_info = list()
-        for _, (page, line_coords) in line_sequence[['page', 'line_coords']].iterrows():
 
-            line_polygon = str2polgon(line_coords)
+        def get_matching_tasks():
+            for _, (page, line_coords) in line_sequence[['page', 'line_coords']].iterrows():
+                yield MatchTask(line_coords, page_sequence_articles.loc[page_sequence_articles.page == page])
 
-            matches = []
-            for _, as_row in page_sequence_articles.loc[page_sequence_articles.page == page].iterrows():
-                matches.append((as_row.name, shapely.intersection(polygon_lookup[as_row.name], line_polygon).area))
-
-            matches = pd.DataFrame(matches, columns=["as_row", "area"])
-
-            article_index = matches.as_row.iloc[matches.area.idxmax()]
-            problematic = False if matches.area.max() > 0.0 else True
-            match_score = matches.area.max()/line_polygon.area
-            num_matches = len(matches.loc[matches.area > 0.0])
+        for article_index, problematic, match_score, num_matches in \
+                tqdm(prun(get_matching_tasks(), initializer=MatchTask.initialize,
+                          initargs=(page_sequence_articles[['article_coords']],)), total=len(line_sequence),
+                     leave=False):
 
             matching_info.append((article_index, problematic, match_score, num_matches))
 
@@ -384,16 +626,12 @@ def evaluate_coordinates(values):
     return coords
 
 
+# noinspection PyUnresolvedReferences
 @click.command()
 @click.argument('w3c-anno-json', type=click.Path(exists=True))
 @click.argument('out_tsv', type=click.Path(exists=False))
-@click.argument('image_dir', type=click.Path(exists=True))
-@click.argument('xml_dir', type=click.Path(exists=True))
 @click.option('--check-only', type=bool, is_flag=True, default=False, help="")
-def compile_article_separation_gt(w3c_anno_json, out_tsv, image_dir, xml_dir, check_only):
-
-    image_dir = image_dir + "/" if not image_dir.endswith("/") else ""
-    xml_dir = xml_dir + "/" if not xml_dir.endswith("/") else ""
+def compile_article_separation_gt(w3c_anno_json, out_tsv, check_only):
 
     with open(w3c_anno_json) as fh:
         data = json.load(fh)
@@ -438,7 +676,8 @@ def compile_article_separation_gt(w3c_anno_json, out_tsv, image_dir, xml_dir, ch
     df["sequence_id"] = "unknown"
     df["sequence_num"] = -1
 
-    df.loc[df.tag.isin(sequence_starters), "sequence_id"] = df.loc[df.tag.isin(sequence_starters)].index
+    starters = df.tag.isin(sequence_starters) | ((df.tag == "article_tail") & (df.prev_part == "unknown"))
+    df.loc[starters, "sequence_id"] = df.loc[starters].index
 
     df.loc[~df.next_part.isin(df.index) & ~df.next_part.isin({"unknown", "not_specified"}), "next_part"] =\
         "not_specified"
@@ -509,8 +748,6 @@ def compile_article_separation_gt(w3c_anno_json, out_tsv, image_dir, xml_dir, ch
     print("Number of annotations: {}".format(len(df)))
     print("Number of article sequences: {}".format(len(df.sequence_id.unique())))
 
-    df["image_file"] = image_dir + df.url.str.extract('.*/(SNP[0-9-X]+)/.*') + ".jpg"
-    df["xml_file"] = xml_dir + df.url.str.extract('.*/(SNP[0-9-X]+)/.*') + ".xml"
+    df["xml_file"] = df.url.str.extract('.*/(SNP[0-9-X]+)/.*') + ".xml"
 
     df.to_csv(out_tsv, sep="\t")
-
