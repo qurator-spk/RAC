@@ -206,9 +206,14 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions
             text_regions.loc[no_article_id, "article_id"] = "unknown"
 
     text_lines = text_lines.merge(order, on="region_ref").drop(columns=["region_ref"])
-    text_regions = text_regions.merge(order, on="region_ref").drop(columns=["region_ref"])
+    text_regions = text_regions.merge(order, on="region_ref", how="left").drop(columns=["region_ref"])
 
     text_regions = text_regions.drop_duplicates().sort_values(by=["reading_order"]).reset_index(drop=True)
+
+    out_of_order = text_regions.reading_order.isnull()
+    if out_of_order.sum() > 0:
+        # print(f"{out_of_order.sum()} text regions not in reading order.")
+        text_regions.loc[out_of_order, "reading_order"] = -1
 
     text_lines = text_lines.sort_values(by=["reading_order", "line_number"], ascending=True).reset_index(drop=True)
 
@@ -235,39 +240,85 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
 
     gt = pd.read_csv(gt_tsv_file, sep='\t')
 
-    print(f"Number of articles in groundtruth: {len(gt.sequence_id.unique())}")
-
-    print("Distribution of tags: ")
-
-    pprint(gt.tag.value_counts())
+    num_pages = len(gt[['zdb', 'year', 'month', 'day', 'issue', 'page']].drop_duplicates())
 
     df = pd.read_csv(match_tsv_file, sep='\t', low_memory=False)
-
-    print(f"Number of text lines in XML files {len(df)}")
 
     df['prev_sequence_id'] = df.shift(1).sequence_id
 
     df['next_sequence_id'] = df.shift(-1).sequence_id
 
-    sequence_next_combis = pd.DataFrame([(sequence_id, next_sequence_id, len(tmp))
-                                        for (sequence_id, next_sequence_id), tmp in
-                                        df.groupby(['sequence_id', 'next_sequence_id'])],
-                                        columns=["sid", "nid", "occ"])
+    def compute_out_of_context(df_match):
+        sequence_next_combis = pd.DataFrame([(sequence_id, next_sequence_id, len(tmp))
+                                            for (sequence_id, next_sequence_id), tmp in
+                                            df_match.groupby(['sequence_id', 'next_sequence_id'])],
+                                            columns=["sid", "nid", "occ"])
 
-    between_sequence_jumps = sequence_next_combis.loc[sequence_next_combis.sid != sequence_next_combis.nid]
+        between_sequence_jumps = sequence_next_combis.loc[sequence_next_combis.sid != sequence_next_combis.nid]
 
-    per_sequence = between_sequence_jumps.sid.value_counts()
+        peseq = between_sequence_jumps.sid.value_counts()
 
-    out_of_context_changes = pd.DataFrame(per_sequence.value_counts()).\
-        rename(columns={"count": "#articles"}).reset_index().rename(columns={"count": "# context switches"})
+        oocc = pd.DataFrame(per_sequence.value_counts()).\
+            rename(columns={"count": "#articles"}).reset_index().rename(columns={"count": "#context switches"})
 
-    pprint(out_of_context_changes)
+        return oocc, peseq
 
-    pprint(df.num_matches.value_counts())
+    art_pages = df[['sequence_id', 'page']].drop_duplicates()
 
-    #import  ipdb;ipdb.set_trace()
+    multi_part_articles_on_one_page = gt.loc[gt[['sequence_id', 'page']].duplicated()].sequence_id.unique()
+
+    num_multi_part_articles_on_one_page = len(multi_part_articles_on_one_page)
+
+    out_of_context_changes, _ = compute_out_of_context(df)
+
+    mp_out_of_context_changes, per_sequence =\
+        compute_out_of_context(df.loc[df.sequence_id.isin(multi_part_articles_on_one_page)])
+
+    # import ipdb;ipdb.set_trace()
+
+    print("\033[1A<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+    print(f"Article ground-truth(GT) file: {gt_tsv_file}")
+    print(f"Matching file: {match_tsv_file} (The article GT has been matched either against layout GT or against the "
+          f"output of an Layout detection system.)")
+
+    print(f"\n\nNumber of pages in article-GT: {num_pages}")
+    print(f"Number of page sequences in article-GT: {df.page_sequence.max()}")
+
+    print("Single page articles vs multi-page articles. How many articles are located over multiple_pages:\n")
+    print(pd.DataFrame(art_pages.sequence_id.\
+                       value_counts().\
+                       value_counts()).rename(columns={"count": "#articles"}).\
+        reset_index().rename(columns={"count": "#pages"}).to_markdown(index=False))
+
+    print(f"\nNumber of multi-part articles on one page: {num_multi_part_articles_on_one_page}\n")
+
+    print(f"\nNumber of articles in article-GT: {len(gt.sequence_id.unique())}")
+
+    print("\nNumber of context changes when parsed in reading order per article:")
+    print("\t #context switches==1: Article can be passed in one go according to reading order and is not interrupted "
+          "by another article (desired result).")
+    print("\n")
+    print(out_of_context_changes.to_markdown(index=False))
+    print(f"\nFor multi-part articles on one page (#{num_multi_part_articles_on_one_page}):\n")
+    print(mp_out_of_context_changes.to_markdown(index=False))
+
+    print(f"\n\nNumber of distinct article regions (polygons) in article-GT: {len(gt)}")
+    print("\nDistribution of tags in article-GT: ")
+
+    print(pd.DataFrame(gt.tag.value_counts()).reset_index().to_markdown(index=False))
+
+    print(f'\n\nNumber of text lines in XML files {len(df)}')
+
+    print("\nNumber of text regions with non-zero intersection per TextLine:")
+    print("\t num_matches==1: TextLine intersects with exactly one text region (desired result).")
+    print("\n")
+    print(pd.DataFrame(df.num_matches.value_counts()).reset_index().to_markdown(index=False))
+
+    print("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+          "\n\n\n\n")
 
 
+# noinspection PyUnresolvedReferences
 @click.command()
 @click.argument('directory', type=click.Path(exists=True))
 @click.argument('out-file', type=click.Path())
@@ -295,14 +346,16 @@ def extract_article_separation(directory, out_file, pattern, follow_symlinks, mo
 
     if mode == "bnf":
         df[['year', 'month', 'day', 'issue', 'page']] = df.xml_file.str.extract("./(.{4})(.{2})(.{2})_(.{1})-(.{4}).")
+
+        df["zdb"] = "XXXXXX"
     elif mode == "nlf":
         df[['fid', 'page', 'lid']] = df.xml_file.str.extract("./([0-9]+)_([0-9]+)_([0-9]+).")
 
-        df['zdb'] = "XXXXXX"
-        df['year'] = df.fid.astype(int)
-        df['month'] = df.lid.astype(int)
-        df['day'] = 1
-        df['issue'] = 1
+        df['zdb'] = df.fid.astype(int)
+        df['year'] = 0
+        df['month'] = 0
+        df['day'] = 0
+        df['issue'] = 0
         df['page'] = df.page.astype(int)
     else:
         raise RuntimeError("Unknown mode.")
@@ -318,7 +371,7 @@ def extract_article_separation(directory, out_file, pattern, follow_symlinks, mo
 
     df[['year', 'month', 'day', 'issue', 'page']] = df[['year', 'month', 'day', 'issue', 'page']].astype(int)
 
-    group_columns = ['year', 'month', 'day', 'issue']
+    group_columns = ['zdb', 'year', 'month', 'day', 'issue']
 
     page_sequence_counter = 0
     region_sequences = list()
@@ -336,7 +389,7 @@ def extract_article_separation(directory, out_file, pattern, follow_symlinks, mo
 
         text_region_sequence = list()
         for _, row in pages.iterrows():
-            text_lines, text_regions =\
+            _, text_regions =\
                 read_line_sequence(row.xml_file, row.page, row.page_sequence_start, row.page_sequence,
                                    return_regions=True)
 
@@ -347,6 +400,12 @@ def extract_article_separation(directory, out_file, pattern, follow_symlinks, mo
         region_sequences.append(pd.concat(text_region_sequence).reset_index(drop=True))
 
     region_sequences = pd.concat(region_sequences).reset_index(drop=True)
+
+    out_of_order = (region_sequences.reading_order == -1)
+
+    print(f"Dropping {out_of_order.sum()} regions that do not appear in the reading order.")
+
+    region_sequences = region_sequences.loc[~out_of_order]
 
     unknown_article = (region_sequences.article_id == "unknown")
 
@@ -369,6 +428,13 @@ def extract_article_separation(directory, out_file, pattern, follow_symlinks, mo
     region_sequences[['next_part']] = region_sequences[['rid']].shift(-1)
     region_sequences[['prev_part']] = region_sequences[['rid']].shift(1)
 
+    sequences = region_sequences[['rid', 'article_id']].drop_duplicates(subset=['article_id'], keep='first').\
+        rename(columns={'rid': 'sequence_id'}).reset_index(drop=True)
+
+    region_sequences = region_sequences.merge(sequences, on="article_id").\
+        rename(columns={'rid': 'id', 'region_coords': 'coords'}).\
+        reset_index(drop=True)
+
     starters = region_sequences.article_id != region_sequences[['article_id']].shift(1).article_id
 
     ends = region_sequences.article_id != region_sequences[['article_id']].shift(-1).article_id
@@ -379,17 +445,10 @@ def extract_article_separation(directory, out_file, pattern, follow_symlinks, mo
     region_sequences.loc[starters, 'prev_part'] = 'not_specified'
     region_sequences.loc[ends, 'next_part'] = 'not_specified'
 
-    sequences = region_sequences[['rid', 'article_id']].drop_duplicates(subset=['article_id'], keep='first').\
-        rename(columns={'rid': 'sequence_id'}).reset_index(drop=True)
-
-    region_sequences = region_sequences.merge(sequences, on="article_id").rename(columns={'rid': 'id',
-                                                                                          'region_coords': 'coords'})
-
     region_sequences['tag'] = "article_middle_part"
     region_sequences.loc[starters, 'tag'] = "article_head"
     region_sequences.loc[ends, 'tag'] = "article_tail"
     region_sequences.loc[starters & ends, 'tag'] = "article"
-    region_sequences['zdb'] = 'XXXXX'
 
     region_sequences = region_sequences[['id', 'sequence_id', 'xml_file', 'coords', 'tag', 'next_part', 'prev_part',
                                          'zdb', 'year', 'month', 'day', 'issue', 'page']]
@@ -447,8 +506,6 @@ def match_article_sequences(gt_tsv_file, xml_dir, out_file):
     line_sequences = list()
     for idx, page_sequence_articles in tqdm(gt.groupby(["zdb", "year", "month", "day", "issue"]), leave=False):
 
-        # polygon_lookup = dict()
-
         pages = page_sequence_articles[['xml_file', 'page']].drop_duplicates().\
             sort_values(by='page', ascending=True).\
             reset_index(drop=True)
@@ -462,6 +519,8 @@ def match_article_sequences(gt_tsv_file, xml_dir, out_file):
         line_sequence = pd.concat([read_line_sequence(xml_dir + xml_file, page, is_start, sq_counter)
                                    for _, (xml_file, page, is_start, sq_counter) in pages.iterrows()]).\
             reset_index(drop=True)
+
+        assert (line_sequence.text.str.len() == 0).sum() == 0
 
         matching_info = list()
 
@@ -669,7 +728,9 @@ def compile_article_separation_gt(w3c_anno_json, out_tsv, check_only):
         df.loc[aid, "prev_part"] = df_connected.iloc[0]["next_part"]
 
     df[["zdb", "year", "month", "day", "issue", "page"]] =\
-        df.url.str.extract("./SNP([^-]+)-(.{4})(.{2})(.{2})-(.{1})-(.{1}).")
+        df.url.str.extract("./SNP([^-]+)-(.{4})(.{2})(.{2})-(.{1})-([0-9]+).")
+
+    #import ipdb;ipdb.set_trace()
 
     df[["year", "month", "day", "issue", "page"]] = df[["year", "month", "day", "issue", "page"]].astype(int)
 

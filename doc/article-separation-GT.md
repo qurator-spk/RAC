@@ -17,6 +17,9 @@
 * Eynollah Layout+OCR für die Newseye-BnF-Zeitungsseiten als [ZIP-Archiv](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/BnF.zip).
 * Eynollah Layout+OCR für die Newseye-NLF-Zeitungsseiten als [ZIP-Archiv](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/NLF.zip).
 
+## Pero-OCR + Textbite Reading Order
+* Pero Layout+OCR+RO für die SBB-Zeitungsseiten als [ZIP-Archiv](http://spunk.lx0246.sbb.spk-berlin.de/ArticleSeparation/SPUNK/pero-SBB.zip).
+
 ## CLI
 
 * [download-w3c-annotation-images](CLI.md#download-w3c-annotation-images)
