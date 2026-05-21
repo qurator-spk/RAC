@@ -40,20 +40,48 @@ boolean_attributs = {"toc"}
 sequence_starters = {"article", "article_head", "heading", "advertisement",
                      "page_header", "page_footer", "title_page_header", "title_page_footer", "obituary"}
 
+spelling_map = {"aricle_tail": "article_tail", "artice": "article", "articl": "article",
+                        "article_header": "article_head", "articl_head": "article_head",
+                        "title_page_heade": "title_page_header",
+                        "next_prt": "next_part", "nex_part": "next_part", "next_part.": "next_part",
+                        "next_pat": "next_part",
+                        "prv_part": "prev_part", "prev_part.": "prev_part", "pre_part": "prev_part",
+                        "prev_post": "prev_part",
+                        "headin": "heading",
+                        "advertisment": "advertisement"}
+
 psp = "{http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15}"
 
 
 def page_get_reading_order(root):
 
-    order = []
+    def traverse_ro(elem):
+        if elem.tag == f"{psp}RegionRefIndexed":
+            local_pos = int(elem.attrib['index'])
+            region_ref = elem.attrib['regionRef']
 
-    for order_elem in root.iter(f'{psp}RegionRefIndexed'):
-        pos = int(order_elem.attrib['index'])
-        region_ref = order_elem.attrib['regionRef']
+            return pd.DataFrame([(local_pos, region_ref)], columns=["reading_order", "region_ref"])
 
-        order.append((pos, region_ref))
+        if elem.tag == f"{psp}OrderedGroup":
+            return pd.concat([traverse_ro(child) for child in elem]).\
+                sort_values(by="reading_order", ascending=True).\
+                reset_index(drop=True)
 
-    return pd.DataFrame(order, columns=["reading_order", "region_ref"])
+        elif elem.tag == f"{psp}UnorderedGroup" or elem.tag == f"{psp}ReadingOrder":
+
+            order = pd.concat([traverse_ro(child) for child in elem]).reset_index(drop=True)
+
+            order = order.drop(columns=["reading_order"]).reset_index().rename(columns={"index": "reading_order"})
+
+            return order
+        else:
+            raise RuntimeError("Unsupported RO tag.")
+
+    reading_order = root.findall(f".//{psp}Page/{psp}ReadingOrder")
+
+    ro = traverse_ro(reading_order[0])
+
+    return ro
 
 
 def page_iterate_text_regions(root):
@@ -67,7 +95,7 @@ def page_iterate_text_regions(root):
         elif the_id.startswith("TableCell_"):
             the_type = "table_cell"
         else:
-            raise RuntimeError("Unsupported type of TextRegion")
+            the_type = "paragraph"
 
         yield the_id, the_type, region_elem
 
@@ -81,8 +109,7 @@ def page_iterate_text_lines(root):
 
 def page_iterate_coords(root):
 
-    for num, coords_elem in (
-            enumerate(root.findall(f'{psp}Coords'))):
+    for num, coords_elem in enumerate(root.findall(f'{psp}Coords')):
 
         if num > 0:
             print("Warning multiple coords!")
@@ -124,8 +151,11 @@ def get_coords(elem):
 
 def str2polgon(points):
 
-    x = [float(i) for i in points.replace(",", " ").split(" ")][0::2]
-    y = [float(i) for i in points.replace(",", " ").split(" ")][1::2]
+    try:
+        x = [float(i) for i in points.replace(",", " ").split(" ")][0::2]
+        y = [float(i) for i in points.replace(",", " ").split(" ")][1::2]
+    except:
+        return shapely.Polygon()
 
     points = [(a, b) for a, b in zip(x, y)]
 
@@ -144,7 +174,11 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions
     tree = ElementTree.parse(page_xml_file, parser=parser)
     root = tree.getroot()
 
-    order = page_get_reading_order(root)
+    try:
+        order = page_get_reading_order(root)
+    except:
+        print(f"No reading order in file {page_xml_file}.")
+        order = pd.DataFrame([], columns=["reading_order", "region_ref"])
 
     text_lines = list()
     text_regions = list()
@@ -205,7 +239,8 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions
             # print(f"Warning: {text_regions.article_id.isnull().sum()} regions do not have an article_id")
             text_regions.loc[no_article_id, "article_id"] = "unknown"
 
-    text_lines = text_lines.merge(order, on="region_ref").drop(columns=["region_ref"])
+    # region_ref information is not permitted to leave this function!!!
+    text_lines = text_lines.merge(order, on="region_ref", how="left").drop(columns=["region_ref"])
     text_regions = text_regions.merge(order, on="region_ref", how="left").drop(columns=["region_ref"])
 
     text_regions = text_regions.drop_duplicates().sort_values(by=["reading_order"]).reset_index(drop=True)
@@ -214,6 +249,11 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions
     if out_of_order.sum() > 0:
         # print(f"{out_of_order.sum()} text regions not in reading order.")
         text_regions.loc[out_of_order, "reading_order"] = -1
+
+    out_of_order = text_lines.reading_order.isnull()
+    if out_of_order.sum() > 0:
+        # print(f"{out_of_order.sum()} text regions not in reading order.")
+        text_lines.loc[out_of_order, "reading_order"] = -1
 
     text_lines = text_lines.sort_values(by=["reading_order", "line_number"], ascending=True).reset_index(drop=True)
 
@@ -244,6 +284,24 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
 
     df = pd.read_csv(match_tsv_file, sep='\t', low_memory=False)
 
+    total_num_lines = len(df)
+
+    ro_len_per_file = df[['xml_file', 'reading_order']].drop_duplicates().xml_file.value_counts()
+
+    files_without_reading_order = list(ro_len_per_file.loc[ro_len_per_file == 1].index)
+
+    if len(files_without_reading_order) > 0:
+        print(f"{len(files_without_reading_order)} files do not have a reading order at all. "
+              f"These will be completely dropped: ")
+        pprint(files_without_reading_order)
+
+    gt = gt.loc[~gt.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
+    df = df.loc[~df.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
+
+    no_reading_order = (df.reading_order == -1)
+
+    df = df.loc[~no_reading_order].copy().reset_index()
+
     df['prev_sequence_id'] = df.shift(1).sequence_id
 
     df['next_sequence_id'] = df.shift(-1).sequence_id
@@ -258,12 +316,14 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
 
         peseq = between_sequence_jumps.sid.value_counts()
 
-        oocc = pd.DataFrame(per_sequence.value_counts()).\
+        oocc = pd.DataFrame(peseq.value_counts()).\
             rename(columns={"count": "#articles"}).reset_index().rename(columns={"count": "#context switches"})
 
         return oocc, peseq
 
-    art_pages = df[['sequence_id', 'page']].drop_duplicates()
+    gt_art_pages = gt[['sequence_id', 'page']].drop_duplicates()
+
+    match_art_pages = df[['sequence_id', 'page']].drop_duplicates()
 
     multi_part_articles_on_one_page = gt.loc[gt[['sequence_id', 'page']].duplicated()].sequence_id.unique()
 
@@ -280,19 +340,28 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
     print(f"Article ground-truth(GT) file: {gt_tsv_file}")
     print(f"Matching file: {match_tsv_file} (The article GT has been matched either against layout GT or against the "
           f"output of an Layout detection system.)")
+    print(f"Ignoring {no_reading_order.sum()} lines in matching file (total number is: {total_num_lines}) "
+          f"due to missing reading order for those lines.")
 
     print(f"\n\nNumber of pages in article-GT: {num_pages}")
     print(f"Number of page sequences in article-GT: {df.page_sequence.max()}")
+    print(f"Total number of articles in article-GT: {len(gt.sequence_id.unique())}")
 
-    print("Single page articles vs multi-page articles. How many articles are located over multiple_pages:\n")
-    print(pd.DataFrame(art_pages.sequence_id.\
+    print("Single page articles vs multi-page articles in GT. "
+          "How many articles in the GT are located over multiple_pages:\n")
+    print(pd.DataFrame(gt_art_pages.sequence_id.\
                        value_counts().\
                        value_counts()).rename(columns={"count": "#articles"}).\
-        reset_index().rename(columns={"count": "#pages"}).to_markdown(index=False))
+          reset_index().rename(columns={"count": "#pages"}).to_markdown(index=False))
 
-    print(f"\nNumber of multi-part articles on one page: {num_multi_part_articles_on_one_page}\n")
+    print("\nSingle page articles vs multi-page articles in matched layout. "
+          "How many articles of the matched layout are located over multiple_pages:\n")
+    print(pd.DataFrame(match_art_pages.sequence_id.\
+                       value_counts().\
+                       value_counts()).rename(columns={"count": "#articles"}). \
+          reset_index().rename(columns={"count": "#pages"}).to_markdown(index=False))
 
-    print(f"\nNumber of articles in article-GT: {len(gt.sequence_id.unique())}")
+    print(f"\nNumber of multi-part articles on one page in GT: {num_multi_part_articles_on_one_page}\n")
 
     print("\nNumber of context changes when parsed in reading order per article:")
     print("\t #context switches==1: Article can be passed in one go according to reading order and is not interrupted "
@@ -358,7 +427,7 @@ def extract_article_separation(directory, out_file, pattern, follow_symlinks, mo
         df['issue'] = 0
         df['page'] = df.page.astype(int)
     else:
-        raise RuntimeError("Unknown mode.")
+        raise RuntimeError("Unknown filename parse mode.")
 
     print(f"Number of scanned XML files: {len(df)}")
 
@@ -526,11 +595,17 @@ def match_article_sequences(gt_tsv_file, xml_dir, out_file):
 
         def get_matching_tasks():
             for _, (page, line_coords) in line_sequence[['page', 'line_coords']].iterrows():
+                page_articles = page_sequence_articles.loc[page_sequence_articles.page == page]
+
+                if len(page_articles) == 0:
+                    continue
+
                 yield MatchTask(line_coords, page_sequence_articles.loc[page_sequence_articles.page == page])
 
         for article_index, problematic, match_score, num_matches in \
                 tqdm(prun(get_matching_tasks(), initializer=MatchTask.initialize,
-                          initargs=(page_sequence_articles[['article_coords']],)), total=len(line_sequence),
+                          initargs=(page_sequence_articles[['article_coords']],), processes=None),
+                     total=len(line_sequence),
                      leave=False):
 
             matching_info.append((article_index, problematic, match_score, num_matches))
@@ -551,7 +626,7 @@ def match_article_sequences(gt_tsv_file, xml_dir, out_file):
     line_sequences.to_csv(out_file, sep='\t')
 
 
-def evaluate_tags(bid, body, url):
+def evaluate_w3c_tags(bid, body, url):
     creators = set()
     created = set()
 
@@ -560,16 +635,6 @@ def evaluate_tags(bid, body, url):
         next_part = None
         prev_part = None
         is_toc = False
-
-        spelling_map = {"aricle_tail": "article_tail", "artice": "article", "articl": "article",
-                        "article_header": "article_head", "articl_head": "article_head",
-                        "title_page_heade": "title_page_header",
-                        "next_prt": "next_part", "nex_part": "next_part", "next_part.": "next_part",
-                        "next_pat": "next_part",
-                        "prv_part": "prev_part", "prev_part.": "prev_part", "pre_part": "prev_part",
-                        "prev_post": "prev_part",
-                        "headin": "heading",
-                        "advertisment": "advertisement"}
 
         for elem in body:
             if elem["purpose"] != "tagging" and elem["value"] not in valid_tags:
@@ -698,7 +763,7 @@ def compile_article_separation_gt(w3c_anno_json, out_tsv, check_only):
     df = pd.DataFrame([(data[i]["id"][1:],
                         data[i]['target']['source'],
                         evaluate_coordinates(data[i]['target']['selector']['value'])) +
-                       evaluate_tags(data[i]["id"][1:], data[i]["body"], data[i]['target']['source'])
+                       evaluate_w3c_tags(data[i]["id"][1:], data[i]["body"], data[i]['target']['source'])
                        for i in range(0, len(data))],
                       columns=["id", "url", "coords", "tag", "next_part", "prev_part", "created", "creators"]).\
         set_index("id")
@@ -729,8 +794,6 @@ def compile_article_separation_gt(w3c_anno_json, out_tsv, check_only):
 
     df[["zdb", "year", "month", "day", "issue", "page"]] =\
         df.url.str.extract("./SNP([^-]+)-(.{4})(.{2})(.{2})-(.{1})-([0-9]+).")
-
-    #import ipdb;ipdb.set_trace()
 
     df[["year", "month", "day", "issue", "page"]] = df[["year", "month", "day", "issue", "page"]].astype(int)
 
