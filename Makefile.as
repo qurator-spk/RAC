@@ -69,6 +69,20 @@ all:	link download-images gt match-articles
 zip:
 	rm -f SBB.zip
 	zip -r SBB.zip $(OCR)
+ey-v8:
+	rm -f ey-ocr-SBB-images
+	rm -f ey-ocr-BnF-images
+	rm -f ey-ocr-NLF-images
+	ln -s  ey8-ocr-SBB-images ey-ocr-SBB-images
+	ln -s  ey8-ocr-NLF-images ey-ocr-NLF-images
+	ln -s  ey8-ocr-BnF-images ey-ocr-BnF-images
+ey-v5:
+	rm -f ey-ocr-SBB-images
+	rm -f ey-ocr-BnF-images
+	rm -f ey-ocr-NLF-images
+	ln -s  ey5-ocr-SBB-images ey-ocr-SBB-images
+	ln -s  ey5-ocr-NLF-images ey-ocr-NLF-images
+	ln -s  ey5-ocr-BnF-images ey-ocr-BnF-images
 
 remove-not-done:
 	cd ey-ocr-SBB-images;rm -f SNP24353991-18910313-1-4-0-0.xml SNP24353991-18910313-1-5-0-0.xml SNP30744556-19140412-0-17-0-0.xml SNP28028685-18920124-0-6-0-0.xml SNP28409322-19080716-0-3-0-0.xml SNP27825061-18540207-0-4-0-0.xml

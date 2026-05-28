@@ -168,7 +168,7 @@ def str2polgon(points):
 
 
 # noinspection PyTypeChecker
-def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions=False):
+def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions=False, skip_empty_lines=False):
 
     parser = ET.XMLParser(encoding='UTF-8')
     tree = ElementTree.parse(page_xml_file, parser=parser)
@@ -198,7 +198,7 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions
 
             text = " ".join([tc for tc in page_iterate_unicode(line_elem)])
 
-            if len(text) == 0:
+            if skip_empty_lines and len(text) == 0:
                 continue
 
             text_lines.append((region_id, a_id, line_number, a_type, text, page, min_x, min_y, max_x, max_y,
@@ -228,6 +228,7 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions
                                                    "mean_center_x", "mean_center_y",
                                                    "mean_width", "mean_height",
                                                    "line_coords"])
+
     if len(custom) > 0:
 
         custom = pd.DataFrame(custom, columns=["rid", "line_number", "line_reading_order", "article_id"])
@@ -334,12 +335,11 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
     mp_out_of_context_changes, per_sequence =\
         compute_out_of_context(df.loc[df.sequence_id.isin(multi_part_articles_on_one_page)])
 
-    # import ipdb;ipdb.set_trace()
-
     print("\033[1A<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
     print(f"Article ground-truth(GT) file: {gt_tsv_file}")
     print(f"Matching file: {match_tsv_file} (The article GT has been matched either against layout GT or against the "
           f"output of an Layout detection system.)")
+    # noinspection PyUnresolvedReferences
     print(f"Ignoring {no_reading_order.sum()} lines in matching file (total number is: {total_num_lines}) "
           f"due to missing reading order for those lines.")
 
@@ -589,7 +589,8 @@ def match_article_sequences(gt_tsv_file, xml_dir, out_file):
                                    for _, (xml_file, page, is_start, sq_counter) in pages.iterrows()]).\
             reset_index(drop=True)
 
-        assert (line_sequence.text.str.len() == 0).sum() == 0
+        # noinspection PyUnresolvedReferences
+        # assert (line_sequence.text.str.len() == 0).sum() == 0
 
         matching_info = list()
 
@@ -672,7 +673,6 @@ def evaluate_w3c_tags(bid, body, url):
             elif m := re.match("(.*)(.{8}-.{4}-.{4}-.{4}-.{10})", value):
 
                 attr, aid = m.groups()
-                # import ipdb;ipdb.set_trace()
             else:
                 raise RuntimeError("Tag or attribute malformed!!")
 
