@@ -18,11 +18,17 @@ Aktuell (Stand 26.2.2026) ist für ca 21% aller ZEFYS-Digitalisate neue state-of
 
 [SP-24353991-OCR-2.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-24353991-OCR-2.sqlite) (ca 69 GB)
 
-## Berliner Tageblatt und Handels-Zeitung (noch in Arbeit - aktuell 197448 Seiten)
+## Berliner Tageblatt und Handels-Zeitung (noch in Arbeit - aktuell 496184 Seiten)
 
 [SP-27646518-OCR-1.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-27646518-OCR-1.sqlite) (ca 19 GB)
 
 [SP-27646518-OCR-2.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-27646518-OCR-2.sqlite) (ca 19 GB)
+
+[SP-27646518-OCR-3.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-27646518-OCR-3.sqlite) (to be uploaded)
+
+[SP-27646518-OCR-4.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-27646518-OCR-4.sqlite) (to be uploaded)
+
+[SP-27646518-OCR-5.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-27646518-OCR-5.sqlite) (to be uploaded)
 
 ## Königsberger Hartungsche Zeitung (komplett, 168562 Seiten)
 
