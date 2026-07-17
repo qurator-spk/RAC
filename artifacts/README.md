@@ -14,9 +14,7 @@ Aktuell (Stand 14.7.2026) ist für ca 30% aller ZEFYS-Digitalisate neue state-of
 
 ## Königlich privilegirte Berlinische Zeitung von Staats- und gelehrten Sachen (komplett - 677011 Seiten)
 
-[SP-24353991-OCR-1.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-24353991-OCR-1.sqlite) (ca 36 GB)
-
-[SP-24353991-OCR-2.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-24353991-OCR-2.sqlite) (ca 69 GB)
+[SP-24353991-OCR.sqlite](http://spunk.lx0246.sbb.spk-berlin.de/SP-24353991-OCR.sqlite) (ca 104 GB)
 
 ## Berliner Tageblatt und Handels-Zeitung (noch in Arbeit - aktuell 496184 Seiten)
 
