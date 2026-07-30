@@ -479,3 +479,39 @@ Options:
   --zefys-prefix TEXT
   --help                        Show this message and exit.
 ```
+## zefys-crop-images
+```
+Usage: zefys-crop-images [OPTIONS] IMAGE_REGION_FILE
+
+  IMAGE_REGION_FILE : Image region CSV file (see scan-graph-regions-ocr-
+  database).
+
+Options:
+  --processes INTEGER    Number of parallel processes to be used. (default all
+                         cores)
+  --flat                 Do not create a directory structure.
+  --dry-run              Do not actually unpack anything.
+  --zdb-id TEXT          Consider only this ZDB-ID (can be supplied multiple
+                         times).
+  --year INTEGER         Consider only this year (can be supplied multiple
+                         times).
+  --start-year INTEGER   Consider a time interval [start-year, stop-year[
+  --stop-year INTEGER    Consider a time interval [start-year, stop-year[
+  --month INTEGER        Consider only this month (can be supplied multiple
+                         times).
+  --start-month INTEGER  Consider a time interval [start-month, stop-month[
+  --stop-month INTEGER   Consider a time interval [start-month, stop-month[
+  --day INTEGER          Consider only this day (can be supplied multiple
+                         times).
+  --start-day INTEGER    Consider a time interval [start-day, stop-day[
+  --stop-day INTEGER     Consider a time interval [start-day, stop-day[
+  --issue INTEGER        Consider only this issue (can be supplied multiple
+                         times).
+  --start-issue INTEGER  Consider a time interval [start-issue, stop-issue[
+  --stop-issue INTEGER   Consider a time interval [start-issue, stop-issue[
+  --page INTEGER         Consider only this page (can be supplied multiple
+                         times).
+  --start-page INTEGER   Consider a page interval [start-page, stop-page[
+  --stop-page INTEGER    Consider a page interval [start-page, stop-page[
+  --help                 Show this message and exit.
+```
