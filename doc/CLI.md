@@ -413,8 +413,7 @@ Options:
 ```
 ## compile-article-separation-gt
 ```
-Usage: compile-article-separation-gt [OPTIONS] W3C_ANNO_JSON OUT_TSV IMAGE_DIR
-                                     XML_DIR
+Usage: compile-article-separation-gt [OPTIONS] W3C_ANNO_JSON OUT_TSV
 
 Options:
   --check-only
@@ -422,8 +421,57 @@ Options:
 ```
 ## match-article-sequences
 ```
-Usage: match-article-sequences [OPTIONS] GT_TSV_FILE OUT_FILE
+Usage: match-article-sequences [OPTIONS] GT_TSV_FILE XML_DIR OUT_FILE
 
 Options:
   --help  Show this message and exit.
+```
+## scan-graph-regions-ocr-database
+```
+Usage: scan-graph-regions-ocr-database [OPTIONS] SCAN_IMAGES_FILE SQLITE_FILE
+                                       OUT_REGION_FILE
+
+  Scan an PAGE-XML OCR database for ImageRegion XML-Elements. Writes the
+  region boundaries into a CSV file together with the image file and url.
+
+  SCAN_IMAGES_FILE: The NFS image file list that was used for the OCR database
+  creation (see zefys-scanner). SQLITE_FILE : The OCR database.
+  OUT_REGION_FILE : Output CSV file.
+
+Options:
+  --processes INTEGER           Number of parallel processes to be used.
+                                (default all cores)
+  --dry-run                     Do not actually unpack anything.
+  --zdb-id TEXT                 Consider only this ZDB-ID (can be supplied
+                                multiple times).
+  --year INTEGER                Consider only this year (can be supplied
+                                multiple times).
+  --start-year INTEGER          Consider a time interval [start-year, stop-
+                                year[
+  --stop-year INTEGER           Consider a time interval [start-year, stop-
+                                year[
+  --month INTEGER               Consider only this month (can be supplied
+                                multiple times).
+  --start-month INTEGER         Consider a time interval [start-month, stop-
+                                month[
+  --stop-month INTEGER          Consider a time interval [start-month, stop-
+                                month[
+  --day INTEGER                 Consider only this day (can be supplied
+                                multiple times).
+  --start-day INTEGER           Consider a time interval [start-day, stop-day[
+  --stop-day INTEGER            Consider a time interval [start-day, stop-day[
+  --issue INTEGER               Consider only this issue (can be supplied
+                                multiple times).
+  --start-issue INTEGER         Consider a time interval [start-issue, stop-
+                                issue[
+  --stop-issue INTEGER          Consider a time interval [start-issue, stop-
+                                issue[
+  --page INTEGER                Consider only this page (can be supplied
+                                multiple times).
+  --start-page INTEGER          Consider a page interval [start-page, stop-
+                                page[
+  --stop-page INTEGER           Consider a page interval [start-page, stop-
+                                page[
+  --scan-images-separator TEXT
+  --help                        Show this message and exit.
 ```
