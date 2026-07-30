@@ -24,17 +24,7 @@ def page_iterate_graph_regions(root):
         the_id = region_elem.attrib['id']
 
         yield the_id, region_elem
-
-
-def parse_points(points_string):
-    pts = []
-
-    for p in points_string.split():
-        x, y = p.split(",")
-        pts.append((int(x), int(y)))
-
-    return np.array(pts, dtype=np.int32)
-
+        
 
 class ScanImagesTask:
 
@@ -123,7 +113,7 @@ def scan_images_ocr_database(scan_images_file, sqlite_file, out_region_file, pro
 
     SQLITE_FILE : The OCR database.
 
-    
+
     OUT_REGION_FILE : Output CSV file.
     """
 
