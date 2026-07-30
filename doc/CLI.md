@@ -476,5 +476,6 @@ Options:
   --stop-page INTEGER           Consider a page interval [start-page, stop-
                                 page[
   --scan-images-separator TEXT
+  --zefys-prefix TEXT
   --help                        Show this message and exit.
 ```

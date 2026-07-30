@@ -24,7 +24,7 @@ def page_iterate_graph_regions(root):
         the_id = region_elem.attrib['id']
 
         yield the_id, region_elem
-        
+
 
 class ScanImagesTask:
 
@@ -100,10 +100,11 @@ class ScanImagesTask:
 @click.option('--stop-page', type=int, default=None,
               help="Consider a page interval [start-page, stop-page[")
 @click.option('--scan-images-separator', type=str, default='\t', help="")
+@click.option('--zefys-prefix', type=str, default='/zefys/archive/', help="")
 def scan_images_ocr_database(scan_images_file, sqlite_file, out_region_file, processes, dry_run,
                              zdb_id, year, start_year, stop_year, month, start_month, stop_month,
                              day, start_day, stop_day, issue, start_issue, stop_issue, page, start_page, stop_page,
-                             scan_images_separator):
+                             scan_images_separator, zefys_prefix):
     """
     Scan an PAGE-XML OCR database for ImageRegion XML-Elements.
     Writes the region boundaries into a CSV file together with the image file and url.
@@ -188,7 +189,7 @@ def scan_images_ocr_database(scan_images_file, sqlite_file, out_region_file, pro
             graph_regions["day"] = day
             graph_regions["issue"] = issue
             graph_regions["page"] = page
-            graph_regions["image_file"] = image_file
+            graph_regions["image_file"] = zefys_prefix + image_file
             graph_regions["image_url"] = image_url
 
             graph_regions.to_csv(out_region_file, mode='a')
