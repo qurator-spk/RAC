@@ -435,7 +435,10 @@ Usage: scan-graph-regions-ocr-database [OPTIONS] SCAN_IMAGES_FILE SQLITE_FILE
   region boundaries into a CSV file together with the image file and url.
 
   SCAN_IMAGES_FILE: The NFS image file list that was used for the OCR database
-  creation (see zefys-scanner). SQLITE_FILE : The OCR database.
+  creation (see zefys-scanner).
+
+  SQLITE_FILE : The OCR database.
+
   OUT_REGION_FILE : Output CSV file.
 
 Options:

@@ -119,7 +119,11 @@ def scan_images_ocr_database(scan_images_file, sqlite_file, out_region_file, pro
     Writes the region boundaries into a CSV file together with the image file and url.
 
     SCAN_IMAGES_FILE: The NFS image file list that was used for the OCR database creation (see zefys-scanner).
+
+
     SQLITE_FILE : The OCR database.
+
+    
     OUT_REGION_FILE : Output CSV file.
     """
 
