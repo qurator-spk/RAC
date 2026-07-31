@@ -12,7 +12,7 @@ kai.labusch@lx0246:/data/kai.labusch/SPUNK$ ls -lh *OCR*.sqlite
 -rw-r--r-- 1 kai.labusch kai.labusch  33G 27. Apr 18:35 SP-2812988X-OCR.sqlite
 ```
 
-Mit dem Befehl [scan-graph-regions-ocr-database](doc/CLI.md#scan-graph-regions-ocr-database) 
+Mit dem Befehl [scan-graph-regions-ocr-database](CLI.md#scan-graph-regions-ocr-database) 
 kann aus diesen Datenbanken eine CSV-Datei extrahiert werden, die die Bounding-Boxes der ImageRegion Elemente
 sowie die Originaldatei auf der die OCR gelaufen ist enthält. Zusätzlich wird noch der Link auf den Content-Server
 mitgeschrieben unter dem die Seite auch abrufbar sein sollte.
@@ -65,7 +65,7 @@ Spalten der CSV-Dateien: x1,y1,x2,y2,zdb_id,year,month,day,issue,page,image_file
 
 ## Ausschneiden der Bildregionen aus den Seitenscans
 
-Mittels des [zefys-crop-images](doc/CLI.md#zefys-crop-images) Befehls und den CSV-Dateien 
+Mittels des [zefys-crop-images](CLI.md#zefys-crop-images) Befehls und den CSV-Dateien 
 können dann die Bildregionen in eigene JPEG-Dateien extrahiert werden.
 Die OCR-Datenbanken werden hierfür nicht mehr benötigt.
 
