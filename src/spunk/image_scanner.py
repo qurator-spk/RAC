@@ -344,17 +344,19 @@ def crop_images(image_region_file, processes, min_width, min_height, flat, dry_r
 
     print(f"Processing {num_image_files} unique image files ...")
 
+    counter = 0
+
     def get_crop_tasks():
+        nonlocal counter
 
         seq = tqdm(df_image_regions.groupby('image_file'), total=num_image_files)
 
         for image_file, regions in seq:
 
-            seq.set_description(f"#:{len(regions)}")
+            seq.set_description(f"#:{counter}")
 
             yield CropImagesTask(image_file, regions, flat)
 
-    counter = 0
     for num_success in prun(get_crop_tasks(), processes=processes):
 
         counter += num_success
