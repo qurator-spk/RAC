@@ -11,6 +11,7 @@ kai.labusch@lx0246:/data/kai.labusch/SPUNK$ ls -lh *OCR*.sqlite
 -rw-r--r-- 1 kai.labusch kai.labusch  88G 16. Jul 17:21 SP-27646518-OCR.sqlite
 -rw-r--r-- 1 kai.labusch kai.labusch  33G 27. Apr 18:35 SP-2812988X-OCR.sqlite
 ```
+Die OCR-Datenbanken können auch [hier](../artifacts/README.md) heruntergeladen werden.
 
 Mit dem Befehl [scan-graph-regions-ocr-database](CLI.md#scan-graph-regions-ocr-database) 
 kann aus diesen Datenbanken eine CSV-Datei extrahiert werden, die die Bounding-Boxes der ImageRegion Elemente
