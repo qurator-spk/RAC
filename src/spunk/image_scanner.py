@@ -211,7 +211,10 @@ class CropImagesTask:
     def __init__(self, image_file, regions, flat):
 
         self._image_file = image_file
-        self._regions = regions
+        self._regions = regions[["x1", "y1",
+                                 "x2", "y2",
+                                 "zdb_id", "year", "month", "day", "issue", "page",
+                                 "image_file", "image_url"]]
         self._flat = flat
 
     def __call__(self, *args, **kwargs):
@@ -220,7 +223,7 @@ class CropImagesTask:
         try:
             img = Image.open(self._image_file).convert('RGB')
 
-            for idx, (_,  (x1, y1, x2, y2, zdb_id, year, month, day, issue, page, image_file, image_url) )\
+            for idx, (_,  (x1, y1, x2, y2, zdb_id, year, month, day, issue, page, image_file, image_url))\
                     in \
                     enumerate(self._regions.iterrows()):
 
@@ -239,7 +242,7 @@ class CropImagesTask:
 
                 img_region.save(target_file, format="JPEG")
 
-            return True
+            return len(self._regions)
 
         except Exception as e:
             print(e)
@@ -248,10 +251,15 @@ class CropImagesTask:
 
 @click.command()
 @click.argument('image-region-file', type=click.Path())
-@click.option('--processes', type=int, default=None, help="Number of parallel processes to be used. "
-                                                          "(default all cores)")
+@click.option('--processes', type=int, default=3,
+              help="Number of parallel processes to be used. (default 3)")
+@click.option('--min-width', type=int, default=None,
+              help="Do not extract regions whose width is below this limit. Default: No lower limit.")
+@click.option('--min-height', type=int, default=None,
+              help="Do not extract regions whose height is below this limit. Default: No lower limit.")
 @click.option('--flat', type=bool, is_flag=True, default=False, help="Do not create a directory structure.")
 @click.option('--dry-run', type=bool, is_flag=True, default=False, help="Do not actually unpack anything.")
+@click.option('--max-count', type=int, default=None, help="Extract only at most this number of regions.")
 @click.option('--zdb-id', type=str, multiple=True, default=None,
               help="Consider only this ZDB-ID (can be supplied multiple times).")
 @click.option('--year', type=int, multiple=True, default=None,
@@ -284,9 +292,9 @@ class CropImagesTask:
               help="Consider a page interval [start-page, stop-page[")
 @click.option('--stop-page', type=int, default=None,
               help="Consider a page interval [start-page, stop-page[")
-def crop_images(image_region_file, processes, flat, dry_run,
-                   zdb_id, year, start_year, stop_year, month, start_month, stop_month,
-                   day, start_day, stop_day, issue, start_issue, stop_issue, page, start_page, stop_page):
+def crop_images(image_region_file, processes, min_width, min_height, flat, dry_run, max_count,
+                zdb_id, year, start_year, stop_year, month, start_month, stop_month,
+                day, start_day, stop_day, issue, start_issue, stop_issue, page, start_page, stop_page):
     """
     IMAGE_REGION_FILE : Image region CSV file (see scan-graph-regions-ocr-database).
     """
@@ -298,8 +306,6 @@ def crop_images(image_region_file, processes, flat, dry_run,
     df_image_regions.day = df_image_regions.day.astype(int)
     df_image_regions.issue = df_image_regions.issue.astype(int)
 
-    df_image_regions = df_image_regions.drop_duplicates(subset=["zdb_id", "year", "month", "day", "issue", "page"])
-
     print(f"Read {len(df_image_regions)} entries from {image_region_file} ...")
 
     df_image_regions = apply_filter(df_image_regions, "zdb_id", zdb_id, None, None)
@@ -310,6 +316,26 @@ def crop_images(image_region_file, processes, flat, dry_run,
     df_image_regions = apply_filter(df_image_regions, "page", page, start_page, stop_page)
 
     print(f"{len(df_image_regions)} entries remain after filtering.")
+
+    if min_width is not None:
+
+        print(f"Application of lower threshold to width ({min_width}) ...")
+
+        df_image_regions['width'] = df_image_regions.x2 - df_image_regions.x1
+
+        df_image_regions = df_image_regions.loc[df_image_regions.width >= min_width]
+
+        print(f"{len(df_image_regions)} regions remain after application of width threshold.")
+
+    if min_height is not None:
+
+        print(f"Application of lower threshold to height ({min_height}) ...")
+
+        df_image_regions['height'] = df_image_regions.y2 - df_image_regions.y1
+
+        df_image_regions = df_image_regions.loc[df_image_regions.height >= min_height]
+
+        print(f"{len(df_image_regions)} regions remain after application of height threshold.")
 
     if dry_run:
         exit()
@@ -328,5 +354,11 @@ def crop_images(image_region_file, processes, flat, dry_run,
 
             yield CropImagesTask(image_file, regions, flat)
 
-    for _ in prun(get_crop_tasks(), processes=processes):
-        pass
+    counter = 0
+    for num_success in prun(get_crop_tasks(), processes=processes):
+
+        counter += num_success
+
+        if max_count is not None and counter > max_count:
+            break
+
