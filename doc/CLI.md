@@ -487,10 +487,14 @@ Usage: zefys-crop-images [OPTIONS] IMAGE_REGION_FILE
   database).
 
 Options:
-  --processes INTEGER    Number of parallel processes to be used. (default all
-                         cores)
+  --processes INTEGER    Number of parallel processes to be used. (default 3)
+  --min-width INTEGER    Do not extract regions whose width is below this
+                         limit. Default: No lower limit.
+  --min-height INTEGER   Do not extract regions whose height is below this
+                         limit. Default: No lower limit.
   --flat                 Do not create a directory structure.
   --dry-run              Do not actually unpack anything.
+  --max-count INTEGER    Extract only at most this number of regions.
   --zdb-id TEXT          Consider only this ZDB-ID (can be supplied multiple
                          times).
   --year INTEGER         Consider only this year (can be supplied multiple
