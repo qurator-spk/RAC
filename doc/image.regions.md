@@ -157,3 +157,23 @@ Mit --max-count kann man eine maximale Anzahl von zu extrahierenden Regionen ang
 
 Mit --dry-run kann man sich einfach nur anschauen was er täte - ohne das tatsächlich etwas geschrieben wird.
 
+Beispiel Ermittelung der Anzahl der Bildregionen pro CSV-Datei ohne Breiten/Höhen-Schwellwert:
+```
+(SPUNK-3.11) kai.labusch@lx0246:/data/kai.labusch/SPUNK/ImageRegions$ for i in *.csv;do echo $i: `zefys-crop-images --dry-run $i | grep -w "remain"`;done
+SP-1907-1931-OCR-image-regions.csv: 319340 entries remain after filtering.
+SP-24353991-OCR-image-regions.csv: 1144582 entries remain after filtering.
+SP-2436020X-OCR-image-regions.csv: 918878 entries remain after filtering.
+SP-27646518-OCR-image-regions.csv: 996545 entries remain after filtering.
+SP-2812988X-OCR-image-regions.csv: 320143 entries remain after filtering.
+```
+Beispiel Ermittelung der Anzahl der Bildregionen pro CSV-Datei - nur Regionen größer 100x100 Pixel:
+```
+(SPUNK-3.11) kai.labusch@lx0246:/data/kai.labusch/SPUNK/ImageRegions$ for i in *.csv;do echo $i: `zefys-crop-images --min-width=100 --min-height=100 --dry-run $i | grep -w "remain after application of height"`;done
+SP-1907-1931-OCR-image-regions.csv: 194282 regions remain after application of height threshold.
+SP-24353991-OCR-image-regions.csv: 436651 regions remain after application of height threshold.
+SP-2436020X-OCR-image-regions.csv: 238182 regions remain after application of height threshold.
+SP-27646518-OCR-image-regions.csv: 622679 regions remain after application of height threshold.
+SP-2812988X-OCR-image-regions.csv: 184477 regions remain after application of height threshold.
+```
+
+
