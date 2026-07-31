@@ -1,5 +1,7 @@
 # Extraktion von Bildregionen
 
+Vorraussetzung ist das [installierte](https://code.dev.sbb.berlin/idm4/SPUNK#installation) SPUNK python-Paket.
+
 ## Extraktion der Bounding-Boxes aus den ImageRegion XML-Elementen der PAGE-Dateien
 
 Die erforderlichen OCR-Datenbanken liegen hier:
