@@ -1,10 +1,4 @@
-# (S)prach(U)nabhängiger (N)achrichten(K)osmos
-
-![greenland](doc/greenland.png) 
-
-![persil](doc/persil.png)
-
-![finnland](doc/finnland.png)
+# Reading Order Article Coherence Toolbox
 
 ---
 
@@ -26,23 +20,10 @@ Update pip:
 ```
 pip install -U pip
 ```
-Install SPUNK:
+Install RAC:
 ```
-pip install git+https://code.dev.sbb.berlin/idm4/SPUNK.git
+pip install git+https://github.com/qurator-spk/RAC.git
 ```
-
-## ZEFYS digitization statistics
-
-Preliminaries: /zefys/archive must be mounted to or point to b-isiprod-udl.pk.de:/ifs/data/SBB/archive/zefys .
-
-There are [Markdown](artifacts/statistics.md) and [HTML](artifacts/statistics.html) files that provide a  statistical overview of the newspaper page scans that are currently contained in the ZEFYS archive.
-
-This statistics can be updated by running
-```
-make nfs-scan
-make run-zefys-statistics
-```
-The [make target "run-zefys-statistics"](Makefile) re-runs a [jupyter notebook](notebooks/zefys-statistics.ipynb) that contains all the details.
 
 
 ## Workflow
