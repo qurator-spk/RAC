@@ -280,6 +280,11 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions
 def evaluate_matching_result(article_tsv_file, match_tsv_file):
     """
     Evaluate various aspects of an article separation - layout/ocr/reading order matching.
+
+    ARTICLE_TSV_FILE: the file containing the article polygon information, i.e., obtained eiter from
+    compile-article-separation-gt or from extract-article-separation.
+
+    MATCH_TSV_FILE: article reading order matching obtained with match-article-sequences
     """
 
     article_separation = pd.read_csv(article_tsv_file, sep='\t')
