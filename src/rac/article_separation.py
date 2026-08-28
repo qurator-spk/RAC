@@ -391,10 +391,23 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
 @click.command()
 @click.argument('directory', type=click.Path(exists=True))
 @click.argument('out-file', type=click.Path())
-@click.option('--pattern', type=str, default="*.xml")
-@click.option('--follow-symlinks', type=bool, is_flag=True, default=False)
-@click.option('--mode', type=click.Choice(['bnf', 'nlf']), default="bnf")
+@click.option('--pattern', type=str, default="*.xml",
+              help="Consider only XML-files that match this pattern. Default: *.xml.")
+@click.option('--follow-symlinks', type=bool, is_flag=True, default=False,
+              help="Follow symlinks while traversing the DIRECTORY.")
+@click.option('--mode', type=click.Choice(['bnf', 'nlf']), default="bnf",
+              help="File parse mode that defines how meta-data information is extracted from the filename - "
+                   "if possible. Default: bnf")
 def extract_article_separation(directory, out_file, pattern, follow_symlinks, mode):
+    """
+    A tool that extracts the article separation information
+    from the PAGE-XML files of NLF and BnF datasets into a TSV-file (OUT_FILE)
+    that describes one article polygon per line and in its entirety
+    corresponds to the article polygon sequence of the dataset
+    where the article polygons are the <TextRegions> in the XML-files.
+
+    The XML-files to be processed are found by recursively parsing DIRECTORY.
+    """
 
     def file_it(to_scan):
         for af in os.scandir(to_scan):
@@ -566,6 +579,16 @@ class MatchTask:
 @click.argument('xml_dir', type=click.Path(exists=True))
 @click.argument('out-file', type=click.Path())
 def match_article_sequences(gt_tsv_file, xml_dir, out_file):
+    """
+    A tool that takes the article-polygon-sequence TSV files - obtained by either
+    compile-article-separation-gt or extract-article-separation - as well as a
+    directory (XML_DIR) with PAGE-XML files as inputs. For each text line in the PAGE-XML-
+    files, the article polygon of largest intersection in the TSV file is determined. A
+    matching-TSV file is produced, that corresponds to the <TextLine> sequence of
+    the entire PAGE-XML input directory mapped to the TSV polygons, first order
+    sorted by page sequence, second order sorted by page, and third order sorted by
+    the reading order defined in the PAGE-XML files.
+    """
 
     xml_dir = xml_dir if xml_dir.endswith('/') else xml_dir + "/"
 
@@ -754,8 +777,21 @@ def evaluate_coordinates(values):
 @click.command()
 @click.argument('w3c-anno-json', type=click.Path(exists=True))
 @click.argument('out_tsv', type=click.Path(exists=False))
-@click.option('--check-only', type=bool, is_flag=True, default=False, help="")
+@click.option('--check-only', type=bool, is_flag=True, default=False,
+              help="Do not write TSV but output only consistency checks.")
 def compile_article_separation_gt(w3c_anno_json, out_tsv, check_only):
+    """
+     A tool that compiles the W3C-JSON file into a tab separated
+     value file (OUT_TSV) that describes one article polygon per line and in its entirety
+     corresponds to the article polygon sequence of the dataset including all pages.
+
+     The tool checks the annotations for consistency - as far as this can be done automatically -
+     and writes errors to stdout.
+
+     \b
+     The W3C-JSON file has been created with the region annotation tool:
+     https://github.com/qurator-spk/sbb_images/blob/6623081cd1b80864e6eca85ab4d7940f5045d1b8/doc/region-annotator.md
+    """
 
     with open(w3c_anno_json) as fh:
         data = json.load(fh)
@@ -880,10 +916,13 @@ def compile_article_separation_gt(w3c_anno_json, out_tsv, check_only):
 @click.command()
 @click.argument('w3c-anno-json', type=click.Path(exists=True))
 @click.argument('target_dir', type=click.Path())
-@click.option('--from-zefys', type=bool, is_flag=True, default=False, help="")
-@click.option('--user', type=str, default=None, help="")
-@click.option('--password', type=str, default=None, help="")
+@click.option('--from-zefys', type=bool, is_flag=True, default=False, help="Special treatment for ZEFYS links.")
+@click.option('--user', type=str, default=None, help="Username for basic auth.")
+@click.option('--password', type=str, default=None, help="Password for basic auth")
 def download_w3c_annotation_images(w3c_anno_json, target_dir, from_zefys, user, password):
+    """
+    Batch download of images referenced in a W3C-Annotation-JSON file (W3C-ANNO-JSON) and write them to TARGET_DIR.
+    """
 
     with open(w3c_anno_json) as fh:
         data = json.load(fh)
@@ -927,3 +966,186 @@ def download_w3c_annotation_images(w3c_anno_json, target_dir, from_zefys, user, 
 
         with open(row.target_file, 'wb') as imf:
             imf.write(img_data)
+
+
+def _evaluate_matching_result(gt_tsv_file, match_tsv_file):
+
+    if not os.path.exists(gt_tsv_file) or not os.path.exists(match_tsv_file):
+        return None
+
+    gt = pd.read_csv(gt_tsv_file, sep='\t')
+
+    gt_num_pages = len(gt[['zdb', 'year', 'month', 'day', 'issue', 'page']].drop_duplicates())
+
+    df = pd.read_csv(match_tsv_file, sep='\t', low_memory=False)
+
+    matched_total_num_lines = len(df)
+
+    ro_len_per_file = df[['xml_file', 'reading_order']].drop_duplicates().xml_file.value_counts()
+
+    files_without_reading_order = list(ro_len_per_file.loc[ro_len_per_file == 1].index)
+
+    gt = gt.loc[~gt.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
+    df = df.loc[~df.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
+
+    matched_no_reading_order = (df.reading_order == -1)
+
+    df = df.loc[~matched_no_reading_order].copy().reset_index()
+
+    df['prev_sequence_id'] = df.shift(1).sequence_id
+
+    df['next_sequence_id'] = df.shift(-1).sequence_id
+
+    def compute_out_of_context(df_match):
+        sequence_next_combis = pd.DataFrame([(sequence_id, next_sequence_id, len(tmp))
+                                            for (sequence_id, next_sequence_id), tmp in
+                                            df_match.groupby(['sequence_id', 'next_sequence_id'])],
+                                            columns=["sid", "nid", "occ"])
+
+        between_sequence_jumps = sequence_next_combis.loc[sequence_next_combis.sid != sequence_next_combis.nid]
+
+        peseq = between_sequence_jumps.sid.value_counts()
+
+        oocc =\
+            pd.DataFrame(peseq.value_counts()).\
+                rename(columns={"count": "#articles"}).\
+                reset_index().\
+                rename(columns={"count": "#context switches"})
+
+        return oocc, peseq
+
+    gt_art_pages = gt[['sequence_id', 'page']].drop_duplicates()
+
+    matched_art_pages = df[['sequence_id', 'page']].drop_duplicates()
+
+    gt_multi_part_articles_on_one_page = gt.loc[gt[['sequence_id', 'page']].duplicated()].sequence_id.unique()
+
+    gt_num_multi_part_articles_on_one_page = len(gt_multi_part_articles_on_one_page)
+
+    matched_out_of_context_changes, _ = compute_out_of_context(df)
+
+    matched_multi_part_on_one_page_out_of_context_changes, per_sequence =\
+        compute_out_of_context(df.loc[df.sequence_id.isin(gt_multi_part_articles_on_one_page)])
+
+    gt_articles_over_multiple_pages =\
+        pd.DataFrame(gt_art_pages.sequence_id.\
+            value_counts().\
+            value_counts()).\
+            rename(columns={"count": "#articles"}).\
+            reset_index().\
+            rename(columns={"count": "#pages"})
+
+    matched_articles_over_multiple_pages =\
+        pd.DataFrame(matched_art_pages.sequence_id.\
+            value_counts().\
+            value_counts()).\
+            rename(columns={"count": "#articles"}).\
+            reset_index().\
+            rename(columns={"count": "#pages"})
+
+    matched_textline_intersection =\
+        pd.DataFrame(df.num_matches.value_counts()).reset_index()
+
+    gt_tag_distribution = pd.DataFrame(gt.tag.value_counts()).reset_index()
+
+    return { 'gt_name' : gt_tsv_file,
+             'ocr_name': match_tsv_file,
+             'gt': gt,
+             'matched' : df,
+             'gt_num_pages': gt_num_pages,
+             'matched_total_num_lines': matched_total_num_lines,
+             'files_without_reading_order': files_without_reading_order,
+             'matched_no_reading_order': matched_no_reading_order,
+             'gt_art_pages': gt_art_pages,
+             'matched_art_pages': matched_art_pages,
+             'gt_multi_part_articles_on_one_page': gt_multi_part_articles_on_one_page,
+             'gt_num_multi_part_articles_on_one_page': gt_num_multi_part_articles_on_one_page,
+             'matched_out_of_context_changes': matched_out_of_context_changes,
+             'matched_multi_part_on_one_page_out_of_context_changes' : matched_multi_part_on_one_page_out_of_context_changes,
+             'gt_articles_over_multiple_pages': gt_articles_over_multiple_pages,
+             'matched_articles_over_multiple_pages': matched_articles_over_multiple_pages,
+             'matched_textline_intersection': matched_textline_intersection,
+             'gt_tag_distribution': gt_tag_distribution }
+
+@click.command()
+@click.option('--article-tsv-file', type=click.Path(exists=True), multiple=True, default=[])
+@click.option('--match-tsv-file', type=click.Path(exists=True), multiple=True, default=[])
+@click.option('--mode', type=click.Choice(['all', 'multi-part-one-page']), default="all",
+              help="Perform RAC computation either for all articles or only for multi part articles that do not span "
+                   "multiple pages.")
+def compute_rac(article_tsv_file, match_tsv_file, mode):
+
+    if len(article_tsv_file)< 1:
+        print("You have to provide at least one article-tsv-file!.")
+        return
+
+    if len(match_tsv_file)< 1:
+        print("You have to provide at least one match-tsv-file!.")
+        return
+
+    gt_names = article_tsv_file
+    match_names = match_tsv_file
+
+    evaluation = dict()
+
+    def _RAC(csw, total):
+        rac = 0.0
+        for num_sw, (count,) in csw.iterrows():
+            rac += 1.0 / float(num_sw) * float(count)
+
+        rac /= float(total)
+
+        return rac
+
+    def compute_out_of_context_table(res_key, total_key):
+
+        columns = [('', '#context switches')]
+
+        moocc = None
+        for on, gtn in zip(match_names, gt_names):
+                columns.append((on, gtn))
+                tmp = evaluation[(gtn, on)][res_key].copy().rename(columns={"#articles": f"{gtn}_{on}"})
+                moocc = pd.DataFrame(tmp) if moocc is None else moocc.merge(tmp, on="#context switches", how="outer")
+
+        moocc.columns = pd.MultiIndex.from_tuples(columns)
+
+        moocc[moocc.isnull()] = 0.0
+        moocc = moocc.astype(int)
+        moocc[moocc == "0"] = '-'
+        moocc = moocc.set_index(('', '#context switches'))
+        moocc.index = moocc.index.rename('context switches')
+
+        total_num = pd.DataFrame([], columns=moocc.columns)
+
+        if total_key == 'gt':
+            for c in moocc.columns:
+                total_num.loc['total #articles', c] = len(evaluation[(c[1], c[0])]['gt'].sequence_id.unique())
+        elif total_key == 'gt_num_multi_part_articles_on_one_page':
+            for c in moocc.columns:
+                total_num.loc['total #articles', c] = evaluation[(c[1], c[0])]['gt_num_multi_part_articles_on_one_page']
+
+        RAC = pd.DataFrame([], columns=moocc.columns)
+
+        for c in moocc.columns:
+            RAC.loc['RAC', c] = round(_RAC(pd.DataFrame(moocc.loc[:, c]), total_num.loc['total #articles', c]),
+                                      3)
+
+        empty = pd.DataFrame([], columns=moocc.columns)
+        empty.loc['context switches:', :] = ''
+
+        moocc = pd.concat([total_num, RAC, empty, moocc])
+
+        return moocc
+
+    for art_tsv, ma_tsv in zip(article_tsv_file, match_tsv_file):
+        evaluation[art_tsv, ma_tsv] = _evaluate_matching_result(art_tsv, ma_tsv)
+
+    if mode == "all":
+        moocc = compute_out_of_context_table('matched_out_of_context_changes', 'gt')
+
+    else:
+        moocc = compute_out_of_context_table('matched_multi_part_on_one_page_out_of_context_changes',
+                                              'gt_num_multi_part_articles_on_one_page')
+
+    print(moocc)
+

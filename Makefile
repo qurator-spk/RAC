@@ -1,18 +1,5 @@
 W3C_ANNO=article-separation-annotations-2026-05-19-19-19-07.839805.json
 W3C_ANNO_ERRORS=article-separation-annotations-2026-05-19-19-19-07.839805-errors.md
-MODELS=models
-IMAGES=SBB-images
-SEGMENTATION=ey-seg-$(IMAGES)
-OCR=ey-ocr-$(IMAGES)
-
-segmentation: 
-	mkdir -p "$(SEGMENTATION)"
-	ln -rfn -s "$(IMAGES)" "$(SEGMENTATION)/$(IMAGES)"
-	eynollah layout -m "$(MODELS)" -di "$(IMAGES)" -o "$(SEGMENTATION)" -light -tll -fl
-ocr: segmentation
-	mkdir -p "$(OCR)"
-	ln -rfn -s "$(IMAGES)" "$(OCR)/$(IMAGES)"
-	eynollah ocr -bs 64 -m "$(MODELS)" -di "$(IMAGES)" -dx "$(SEGMENTATION)" -o "$(OCR)"
 
 download-images:
 	download-w3c-annotation-images --from-zefys $(W3C_ANNO) $(IMAGES)
@@ -48,6 +35,9 @@ match-gt-SBB-pero-layout-ocr.tsv:
 
 match-articles: match-gt-NLF-gt-layout-ocr.tsv match-gt-BnF-gt-layout-ocr.tsv match-gt-BnF-eynollah-layout-ocr.tsv match-gt-NLF-eynollah-layout-ocr.tsv match-gt-SBB-eynollah-layout-ocr.tsv match-gt-SBB-pero-layout-ocr.tsv match-gt-BnF-pero-layout-ocr.tsv match-gt-NLF-pero-layout-ocr.tsv
 
+compute-rac:
+    compute-rac --article-tsv-file gt-SBB.tsv --match-tsv-file match-gt-SBB-eynollah-layout-ocr.tsv --article-tsv-file gt-NLF.tsv --match-tsv-file match-gt-NLF-eynollah-layout-ocr.tsv --article-tsv-file gt-BnF.tsv --match-tsv-file match-gt-BnF-eynollah-layout-ocr.tsv
+
 eval:
 	evaluate-article-matching gt-BnF.tsv match-gt-BnF-gt-layout-ocr.tsv
 	evaluate-article-matching gt-BnF.tsv match-gt-BnF-eynollah-layout-ocr.tsv
@@ -64,25 +54,4 @@ link:
 	rm -f errors.md
 	ln -sfn $(W3C_ANNO_ERRORS) errors.md
 
-all:	link download-images gt match-articles
-
-zip:
-	rm -f SBB.zip
-	zip -r SBB.zip $(OCR)
-ey-v8:
-	rm -f ey-ocr-SBB-images
-	rm -f ey-ocr-BnF-images
-	rm -f ey-ocr-NLF-images
-	ln -s  ey8-ocr-SBB-images ey-ocr-SBB-images
-	ln -s  ey8-ocr-NLF-images ey-ocr-NLF-images
-	ln -s  ey8-ocr-BnF-images ey-ocr-BnF-images
-ey-v5:
-	rm -f ey-ocr-SBB-images
-	rm -f ey-ocr-BnF-images
-	rm -f ey-ocr-NLF-images
-	ln -s  ey5-ocr-SBB-images ey-ocr-SBB-images
-	ln -s  ey5-ocr-NLF-images ey-ocr-NLF-images
-	ln -s  ey5-ocr-BnF-images ey-ocr-BnF-images
-
-remove-not-done:
-	cd ey-ocr-SBB-images;rm -f SNP24353991-18910313-1-4-0-0.xml SNP24353991-18910313-1-5-0-0.xml SNP30744556-19140412-0-17-0-0.xml SNP28028685-18920124-0-6-0-0.xml SNP28409322-19080716-0-3-0-0.xml SNP27825061-18540207-0-4-0-0.xml
+all:	link download-images gt match-articles compute-rac

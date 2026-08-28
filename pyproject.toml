@@ -25,12 +25,12 @@ classifiers = [
 ]
 
 [project.scripts]
+compute-rac = "rac.article_separation:compute_rac"
 evaluate-article-matching = "rac.article_separation:evaluate_matching_result"
 extract-article-separation = "rac.article_separation:extract_article_separation"
 match-article-sequences = "rac.article_separation:match_article_sequences"
 compile-article-separation-gt = "rac.article_separation:compile_article_separation_gt"
 download-w3c-annotation-images = "rac.article_separation:download_w3c_annotation_images"
-scan-graph-regions-ocr-database = "rac.image_scanner:scan_images_ocr_database"
 
 [project.urls]
 Homepage = "https://github.com/qurator-spk/RAC"
