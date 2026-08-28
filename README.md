@@ -34,6 +34,7 @@ pip install git+https://github.com/qurator-spk/RAC.git
 * [compute-rac](doc/CLI.md#compute-rac)
 * [evaluate-article-matching](doc/CLI.md#evaluate-article-matching)
 * [download-w3c-annotation-images](doc/CLI.md#download-w3c-annotation-images)
+* [Annotationtool](https://github.com/qurator-spk/sbb_images/blob/6623081cd1b80864e6eca85ab4d7940f5045d1b8/doc/region-annotator.md)
 
 See also [Makefile](Makefile).
 
