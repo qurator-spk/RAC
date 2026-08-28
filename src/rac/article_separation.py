@@ -875,3 +875,55 @@ def compile_article_separation_gt(w3c_anno_json, out_tsv, check_only):
     df["xml_file"] = df.url.str.extract('.*/(SNP[0-9-X]+)/.*') + ".xml"
 
     df.to_csv(out_tsv, sep="\t")
+
+
+@click.command()
+@click.argument('w3c-anno-json', type=click.Path(exists=True))
+@click.argument('target_dir', type=click.Path())
+@click.option('--from-zefys', type=bool, is_flag=True, default=False, help="")
+@click.option('--user', type=str, default=None, help="")
+@click.option('--password', type=str, default=None, help="")
+def download_w3c_annotation_images(w3c_anno_json, target_dir, from_zefys, user, password):
+
+    with open(w3c_anno_json) as fh:
+        data = json.load(fh)
+
+    df = pd.DataFrame([(data[i]['target']['source'],
+                        data[i]['target']['selector']['value']) for i in range(0, len(data))],
+                      columns=["url", "value"])
+
+    print("Number of annotations: {}".format(len(df)))
+
+    urls = df.drop_duplicates(subset=["url"])[["url"]].reset_index(drop=True)
+
+    if from_zefys:
+        urls["file"] = urls.url.str.extract('.*/(SNP[0-9-X]+)/.*') + ".jpg"
+        urls["path"] = target_dir + "/" if not target_dir.endswith("/") else ""
+    else:
+        urls[['protocol', 'path', 'file']] =\
+            urls.url.str.extract("(.*)://(.*)/(.*)").\
+                rename(columns={0: "protocol", 1: "path", 2: "file"})
+
+        urls["path"] = target_dir + "/" if not target_dir.endswith("/") else "" + urls.path
+
+        urls.loc[urls.file.str.len() == 0, 'file'] = "default.jpg"
+        urls.loc[~urls.file.str.endswith(".jpg"), 'file'] += ".jpg"
+
+    urls['target_file'] = urls.path + "/" + urls.file
+
+    for _, row in tqdm(urls.iterrows(), desc="Downloading image files ..."):
+
+        if os.path.exists(row.target_file):
+            print("Skipping {}".format(row.target_file))
+            continue
+
+        if user is None and password is None:
+            img_data = requests.get(row.url).content
+        else:
+            img_data = requests.get(row.url, auth=(user, password)).content
+
+        if 'path' in urls.columns:
+            os.makedirs(row.path, exist_ok=True)
+
+        with open(row.target_file, 'wb') as imf:
+            imf.write(img_data)

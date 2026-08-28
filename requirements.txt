@@ -6,3 +6,4 @@ pandas
 click
 requests
 shapely
+lxml
