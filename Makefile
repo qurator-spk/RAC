@@ -1,5 +1,6 @@
 W3C_ANNO=article-separation-annotations-2026-05-19-19-19-07.839805.json
 W3C_ANNO_ERRORS=article-separation-annotations-2026-05-19-19-19-07.839805-errors.md
+IMAGES=SBB-images
 
 download-images:
 	download-w3c-annotation-images --from-zefys $(W3C_ANNO) $(IMAGES)
@@ -36,7 +37,7 @@ match-gt-SBB-pero-layout-ocr.tsv:
 match-articles: match-gt-NLF-gt-layout-ocr.tsv match-gt-BnF-gt-layout-ocr.tsv match-gt-BnF-eynollah-layout-ocr.tsv match-gt-NLF-eynollah-layout-ocr.tsv match-gt-SBB-eynollah-layout-ocr.tsv match-gt-SBB-pero-layout-ocr.tsv match-gt-BnF-pero-layout-ocr.tsv match-gt-NLF-pero-layout-ocr.tsv
 
 compute-rac:
-    compute-rac --article-tsv-file gt-SBB.tsv --match-tsv-file match-gt-SBB-eynollah-layout-ocr.tsv --article-tsv-file gt-NLF.tsv --match-tsv-file match-gt-NLF-eynollah-layout-ocr.tsv --article-tsv-file gt-BnF.tsv --match-tsv-file match-gt-BnF-eynollah-layout-ocr.tsv
+	compute-rac --article-tsv-file gt-SBB.tsv --match-tsv-file match-gt-SBB-eynollah-layout-ocr.tsv --article-tsv-file gt-NLF.tsv --match-tsv-file match-gt-NLF-eynollah-layout-ocr.tsv --article-tsv-file gt-BnF.tsv --match-tsv-file match-gt-BnF-eynollah-layout-ocr.tsv
 
 eval:
 	evaluate-article-matching gt-BnF.tsv match-gt-BnF-gt-layout-ocr.tsv
@@ -54,4 +55,18 @@ link:
 	rm -f errors.md
 	ln -sfn $(W3C_ANNO_ERRORS) errors.md
 
-all:	link download-images gt match-articles compute-rac
+all:	link download-images gt match-articles eval compute-rac
+
+CLI_DOC_FILE=doc/CLI.md
+
+%-command-doc:
+	echo "## $*" >> $(CLI_DOC_FILE)
+	echo \`\`\` >> $(CLI_DOC_FILE)
+	echo `$* --help | base64 -w0` | base64 -d >> $(CLI_DOC_FILE)
+	echo \`\`\` >> $(CLI_DOC_FILE)
+
+CLI-MD-HEADER:
+	rm $(CLI_DOC_FILE)
+
+CLI-MD: CLI-MD-HEADER compute-rac-command-doc evaluate-article-matching-command-doc extract-article-separation-command-doc match-article-sequences-command-doc compile-article-separation-gt-command-doc download-w3c-annotation-images-command-doc
+

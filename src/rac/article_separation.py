@@ -275,19 +275,22 @@ def read_line_sequence(page_xml_file, page, is_start, sq_counter, return_regions
 
 
 @click.command()
-@click.argument('gt_tsv_file', type=click.Path(exists=True))
+@click.argument('article_tsv_file', type=click.Path(exists=True))
 @click.argument('match_tsv_file', type=click.Path(exists=True))
-def evaluate_matching_result(gt_tsv_file, match_tsv_file):
+def evaluate_matching_result(article_tsv_file, match_tsv_file):
+    """
+    Evaluate various aspects of an article separation - layout/ocr/reading order matching.
+    """
 
-    gt = pd.read_csv(gt_tsv_file, sep='\t')
+    article_separation = pd.read_csv(article_tsv_file, sep='\t')
 
-    num_pages = len(gt[['zdb', 'year', 'month', 'day', 'issue', 'page']].drop_duplicates())
+    num_pages = len(article_separation[['zdb', 'year', 'month', 'day', 'issue', 'page']].drop_duplicates())
 
-    df = pd.read_csv(match_tsv_file, sep='\t', low_memory=False)
+    matching = pd.read_csv(match_tsv_file, sep='\t', low_memory=False)
 
-    total_num_lines = len(df)
+    total_num_lines = len(matching)
 
-    ro_len_per_file = df[['xml_file', 'reading_order']].drop_duplicates().xml_file.value_counts()
+    ro_len_per_file = matching[['xml_file', 'reading_order']].drop_duplicates().xml_file.value_counts()
 
     files_without_reading_order = list(ro_len_per_file.loc[ro_len_per_file == 1].index)
 
@@ -296,16 +299,16 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
               f"These will be completely dropped: ")
         pprint(files_without_reading_order)
 
-    gt = gt.loc[~gt.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
-    df = df.loc[~df.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
+    article_separation = article_separation.loc[~article_separation.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
+    matching = matching.loc[~matching.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
 
-    no_reading_order = (df.reading_order == -1)
+    no_reading_order = (matching.reading_order == -1)
 
-    df = df.loc[~no_reading_order].copy().reset_index()
+    matching = matching.loc[~no_reading_order].copy().reset_index()
 
-    df['prev_sequence_id'] = df.shift(1).sequence_id
+    matching['prev_sequence_id'] = matching.shift(1).sequence_id
 
-    df['next_sequence_id'] = df.shift(-1).sequence_id
+    matching['next_sequence_id'] = matching.shift(-1).sequence_id
 
     def compute_out_of_context(df_match):
         sequence_next_combis = pd.DataFrame([(sequence_id, next_sequence_id, len(tmp))
@@ -322,34 +325,34 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
 
         return oocc, peseq
 
-    gt_art_pages = gt[['sequence_id', 'page']].drop_duplicates()
+    art_pages = article_separation[['sequence_id', 'page']].drop_duplicates()
 
-    match_art_pages = df[['sequence_id', 'page']].drop_duplicates()
+    match_art_pages = matching[['sequence_id', 'page']].drop_duplicates()
 
-    multi_part_articles_on_one_page = gt.loc[gt[['sequence_id', 'page']].duplicated()].sequence_id.unique()
+    multi_part_articles_on_one_page = article_separation.loc[article_separation[['sequence_id', 'page']].duplicated()].sequence_id.unique()
 
     num_multi_part_articles_on_one_page = len(multi_part_articles_on_one_page)
 
-    out_of_context_changes, _ = compute_out_of_context(df)
+    out_of_context_changes, _ = compute_out_of_context(matching)
 
     mp_out_of_context_changes, per_sequence =\
-        compute_out_of_context(df.loc[df.sequence_id.isin(multi_part_articles_on_one_page)])
+        compute_out_of_context(matching.loc[matching.sequence_id.isin(multi_part_articles_on_one_page)])
 
     print("\033[1A<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-    print(f"Article ground-truth(GT) file: {gt_tsv_file}")
-    print(f"Matching file: {match_tsv_file} (The article GT has been matched either against layout GT or against the "
+    print(f"Article separation file: {article_tsv_file}")
+    print(f"Matching file: {match_tsv_file} (The article separation has been matched either against layout GT or against the "
           f"output of an Layout detection system.)")
     # noinspection PyUnresolvedReferences
     print(f"Ignoring {no_reading_order.sum()} lines in matching file (total number is: {total_num_lines}) "
           f"due to missing reading order for those lines.")
 
     print(f"\n\nNumber of pages in article-GT: {num_pages}")
-    print(f"Number of page sequences in article-GT: {df.page_sequence.max()}")
-    print(f"Total number of articles in article-GT: {len(gt.sequence_id.unique())}")
+    print(f"Number of page sequences in article-GT: {matching.page_sequence.max()}")
+    print(f"Total number of articles in article-GT: {len(article_separation.sequence_id.unique())}")
 
-    print("Single page articles vs multi-page articles in GT. "
-          "How many articles in the GT are located over multiple_pages:\n")
-    print(pd.DataFrame(gt_art_pages.sequence_id.\
+    print("Single page articles vs multi-page articles. "
+          "How many articles are located over multiple_pages:\n")
+    print(pd.DataFrame(art_pages.sequence_id.\
                        value_counts().\
                        value_counts()).rename(columns={"count": "#articles"}).\
           reset_index().rename(columns={"count": "#pages"}).to_markdown(index=False))
@@ -361,7 +364,7 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
                        value_counts()).rename(columns={"count": "#articles"}). \
           reset_index().rename(columns={"count": "#pages"}).to_markdown(index=False))
 
-    print(f"\nNumber of multi-part articles on one page in GT: {num_multi_part_articles_on_one_page}\n")
+    print(f"\nNumber of multi-part articles on one page: {num_multi_part_articles_on_one_page}\n")
 
     print("\nNumber of context changes when parsed in reading order per article:")
     print("\t #context switches==1: Article can be passed in one go according to reading order and is not interrupted "
@@ -371,17 +374,17 @@ def evaluate_matching_result(gt_tsv_file, match_tsv_file):
     print(f"\nFor multi-part articles on one page (#{num_multi_part_articles_on_one_page}):\n")
     print(mp_out_of_context_changes.to_markdown(index=False))
 
-    print(f"\n\nNumber of distinct article regions (polygons) in article-GT: {len(gt)}")
-    print("\nDistribution of tags in article-GT: ")
+    print(f"\n\nNumber of distinct article regions (polygons) in article-GT: {len(article_separation)}")
+    print("\nDistribution of tags in article separation: ")
 
-    print(pd.DataFrame(gt.tag.value_counts()).reset_index().to_markdown(index=False))
+    print(pd.DataFrame(article_separation.tag.value_counts()).reset_index().to_markdown(index=False))
 
-    print(f'\n\nNumber of text lines in XML files {len(df)}')
+    print(f'\n\nNumber of text lines in XML files {len(matching)}')
 
     print("\nNumber of text regions with non-zero intersection per TextLine:")
     print("\t num_matches==1: TextLine intersects with exactly one text region (desired result).")
     print("\n")
-    print(pd.DataFrame(df.num_matches.value_counts()).reset_index().to_markdown(index=False))
+    print(pd.DataFrame(matching.num_matches.value_counts()).reset_index().to_markdown(index=False))
 
     print("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
           "\n\n\n\n")
@@ -575,10 +578,10 @@ class MatchTask:
 
 
 @click.command()
-@click.argument('gt_tsv_file', type=click.Path(exists=True))
+@click.argument('article_tsv_file', type=click.Path(exists=True))
 @click.argument('xml_dir', type=click.Path(exists=True))
 @click.argument('out-file', type=click.Path())
-def match_article_sequences(gt_tsv_file, xml_dir, out_file):
+def match_article_sequences(article_tsv_file, xml_dir, out_file):
     """
     A tool that takes the article-polygon-sequence TSV files - obtained by either
     compile-article-separation-gt or extract-article-separation - as well as a
@@ -592,7 +595,7 @@ def match_article_sequences(gt_tsv_file, xml_dir, out_file):
 
     xml_dir = xml_dir if xml_dir.endswith('/') else xml_dir + "/"
 
-    gt = pd.read_csv(gt_tsv_file, sep="\t").rename(columns={'coords': 'article_coords'})
+    gt = pd.read_csv(article_tsv_file, sep="\t").rename(columns={'coords': 'article_coords'})
 
     page_sequence_counter = 0
     line_sequences = list()
@@ -968,14 +971,14 @@ def download_w3c_annotation_images(w3c_anno_json, target_dir, from_zefys, user, 
             imf.write(img_data)
 
 
-def _evaluate_matching_result(gt_tsv_file, match_tsv_file):
+def _evaluate_matching_result(article_tsv_file, match_tsv_file):
 
-    if not os.path.exists(gt_tsv_file) or not os.path.exists(match_tsv_file):
+    if not os.path.exists(article_tsv_file) or not os.path.exists(match_tsv_file):
         return None
 
-    gt = pd.read_csv(gt_tsv_file, sep='\t')
+    articles_sep = pd.read_csv(article_tsv_file, sep='\t')
 
-    gt_num_pages = len(gt[['zdb', 'year', 'month', 'day', 'issue', 'page']].drop_duplicates())
+    art_num_pages = len(articles_sep[['zdb', 'year', 'month', 'day', 'issue', 'page']].drop_duplicates())
 
     df = pd.read_csv(match_tsv_file, sep='\t', low_memory=False)
 
@@ -985,7 +988,7 @@ def _evaluate_matching_result(gt_tsv_file, match_tsv_file):
 
     files_without_reading_order = list(ro_len_per_file.loc[ro_len_per_file == 1].index)
 
-    gt = gt.loc[~gt.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
+    articles_sep = articles_sep.loc[~articles_sep.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
     df = df.loc[~df.xml_file.isin(files_without_reading_order)].copy().reset_index(drop=True)
 
     matched_no_reading_order = (df.reading_order == -1)
@@ -1014,21 +1017,21 @@ def _evaluate_matching_result(gt_tsv_file, match_tsv_file):
 
         return oocc, peseq
 
-    gt_art_pages = gt[['sequence_id', 'page']].drop_duplicates()
+    art_pages = articles_sep[['sequence_id', 'page']].drop_duplicates()
 
     matched_art_pages = df[['sequence_id', 'page']].drop_duplicates()
 
-    gt_multi_part_articles_on_one_page = gt.loc[gt[['sequence_id', 'page']].duplicated()].sequence_id.unique()
+    multi_part_articles_on_one_page = articles_sep.loc[articles_sep[['sequence_id', 'page']].duplicated()].sequence_id.unique()
 
-    gt_num_multi_part_articles_on_one_page = len(gt_multi_part_articles_on_one_page)
+    num_multi_part_articles_on_one_page = len(multi_part_articles_on_one_page)
 
     matched_out_of_context_changes, _ = compute_out_of_context(df)
 
     matched_multi_part_on_one_page_out_of_context_changes, per_sequence =\
-        compute_out_of_context(df.loc[df.sequence_id.isin(gt_multi_part_articles_on_one_page)])
+        compute_out_of_context(df.loc[df.sequence_id.isin(multi_part_articles_on_one_page)])
 
-    gt_articles_over_multiple_pages =\
-        pd.DataFrame(gt_art_pages.sequence_id.\
+    articles_over_multiple_pages =\
+        pd.DataFrame(art_pages.sequence_id.\
             value_counts().\
             value_counts()).\
             rename(columns={"count": "#articles"}).\
@@ -1046,26 +1049,26 @@ def _evaluate_matching_result(gt_tsv_file, match_tsv_file):
     matched_textline_intersection =\
         pd.DataFrame(df.num_matches.value_counts()).reset_index()
 
-    gt_tag_distribution = pd.DataFrame(gt.tag.value_counts()).reset_index()
+    tag_distribution = pd.DataFrame(articles_sep.tag.value_counts()).reset_index()
 
-    return { 'gt_name' : gt_tsv_file,
+    return { 'art_name' : article_tsv_file,
              'ocr_name': match_tsv_file,
-             'gt': gt,
+             'article_separation': articles_sep,
              'matched' : df,
-             'gt_num_pages': gt_num_pages,
+             'num_pages': art_num_pages,
              'matched_total_num_lines': matched_total_num_lines,
              'files_without_reading_order': files_without_reading_order,
              'matched_no_reading_order': matched_no_reading_order,
-             'gt_art_pages': gt_art_pages,
+             'art_pages': art_pages,
              'matched_art_pages': matched_art_pages,
-             'gt_multi_part_articles_on_one_page': gt_multi_part_articles_on_one_page,
-             'gt_num_multi_part_articles_on_one_page': gt_num_multi_part_articles_on_one_page,
+             'multi_part_articles_on_one_page': multi_part_articles_on_one_page,
+             'num_multi_part_articles_on_one_page': num_multi_part_articles_on_one_page,
              'matched_out_of_context_changes': matched_out_of_context_changes,
              'matched_multi_part_on_one_page_out_of_context_changes' : matched_multi_part_on_one_page_out_of_context_changes,
-             'gt_articles_over_multiple_pages': gt_articles_over_multiple_pages,
+             'articles_over_multiple_pages': articles_over_multiple_pages,
              'matched_articles_over_multiple_pages': matched_articles_over_multiple_pages,
              'matched_textline_intersection': matched_textline_intersection,
-             'gt_tag_distribution': gt_tag_distribution }
+             'tag_distribution': tag_distribution }
 
 @click.command()
 @click.option('--article-tsv-file', type=click.Path(exists=True), multiple=True, default=[])
@@ -1083,7 +1086,7 @@ def compute_rac(article_tsv_file, match_tsv_file, mode):
         print("You have to provide at least one match-tsv-file!.")
         return
 
-    gt_names = article_tsv_file
+    art_names = article_tsv_file
     match_names = match_tsv_file
 
     evaluation = dict()
@@ -1102,7 +1105,7 @@ def compute_rac(article_tsv_file, match_tsv_file, mode):
         columns = [('', '#context switches')]
 
         moocc = None
-        for on, gtn in zip(match_names, gt_names):
+        for on, gtn in zip(match_names, art_names):
                 columns.append((on, gtn))
                 tmp = evaluation[(gtn, on)][res_key].copy().rename(columns={"#articles": f"{gtn}_{on}"})
                 moocc = pd.DataFrame(tmp) if moocc is None else moocc.merge(tmp, on="#context switches", how="outer")
@@ -1117,12 +1120,12 @@ def compute_rac(article_tsv_file, match_tsv_file, mode):
 
         total_num = pd.DataFrame([], columns=moocc.columns)
 
-        if total_key == 'gt':
+        if total_key == 'article_separation':
             for c in moocc.columns:
-                total_num.loc['total #articles', c] = len(evaluation[(c[1], c[0])]['gt'].sequence_id.unique())
-        elif total_key == 'gt_num_multi_part_articles_on_one_page':
+                total_num.loc['total #articles', c] = len(evaluation[(c[1], c[0])]['article_separation'].sequence_id.unique())
+        elif total_key == 'num_multi_part_articles_on_one_page':
             for c in moocc.columns:
-                total_num.loc['total #articles', c] = evaluation[(c[1], c[0])]['gt_num_multi_part_articles_on_one_page']
+                total_num.loc['total #articles', c] = evaluation[(c[1], c[0])]['num_multi_part_articles_on_one_page']
 
         RAC = pd.DataFrame([], columns=moocc.columns)
 
@@ -1141,11 +1144,11 @@ def compute_rac(article_tsv_file, match_tsv_file, mode):
         evaluation[art_tsv, ma_tsv] = _evaluate_matching_result(art_tsv, ma_tsv)
 
     if mode == "all":
-        moocc = compute_out_of_context_table('matched_out_of_context_changes', 'gt')
+        moocc = compute_out_of_context_table('matched_out_of_context_changes', 'article_separation')
 
     else:
         moocc = compute_out_of_context_table('matched_multi_part_on_one_page_out_of_context_changes',
-                                              'gt_num_multi_part_articles_on_one_page')
+                                              'num_multi_part_articles_on_one_page')
 
     print(moocc)
 

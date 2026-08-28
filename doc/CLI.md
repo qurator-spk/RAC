@@ -1,521 +1,89 @@
-## zefys-scanner
+## compute-rac
 ```
-Usage: zefys-scanner [OPTIONS] OUT_FILE
-
-  Recursively search some directory for image files. Process the filenames of
-  the found files with regular expressions in order to extract information
-  such as ZDB_ID, YEAR, MONTH, DAY, ISSUE, PAGE from them. Output a tab
-  separated value file (TSV) that contains all this information for further
-  use for instance with zefys-downloader.
+Usage: compute-rac [OPTIONS]
 
 Options:
-  --directory TEXT         Recursively search image files in the directory.
-                           See also options: pattern, follow-symlinks, subset-
-                           json, subset-dirs-json
-  --zefys-filelist TEXT    A pre-computed image file list as text file. One
-                           image file with absolute path per line. Can be
-                           obtained for instance from running in /nfs/zefys
-                           (takes roughly 24 hours!):         find ./
-                           -wholename "*/presentation/*.jpg"    -o -wholename
-                           "*/presentation/*.jpeg"   -o -wholename
-                           "*/presentation/*.png" > zefys_image_files.txt
-  --pattern TEXT           File pattern to search for in case of directory
-                           search. Default: ["*/presentation/*.jpg",
-                           "*/presentation/*.jpeg", "*/presentation/*.png"
-                           ]Can be used in order to consider only a particular
-                           subset of subdirectories in the recursive search,
-                           for instance */presentation/*.jpg considers only
-                           .jpg files located in a subdirectory "presentation"
-  --follow-symlinks
-  --subset-json PATH       Consider only the subset of page-XML files defined
-                           in this json file.
-  --subset-dirs-json PATH  Recursively search only through a subset of sub-
-                           directories as defined in this json file.
-  --help                   Show this message and exit.
+  --article-tsv-file PATH
+  --match-tsv-file PATH
+  --mode [all|multi-part-one-page]
+                                  Perform RAC computation either for all
+                                  articles or only for multi part articles
+                                  that do not span multiple pages.
+  --help                          Show this message and exit.
 ```
-## zefys-downloader
+## evaluate-article-matching
 ```
-Usage: zefys-downloader [OPTIONS] SCAN_IMAGES_FILE TARGET_PATH
-
-  The tool either creates symlinks to ZEFYS image files or downloads ZEFYS
-  image files in full resolution from the SBB content server. The option
-  --zefys-prefix controls if sysmlinks are used or rather the files are
-  downloaded from the content server. If --zefys-prefix is provided, it should
-  point to a directory where the ZEFYS NFS is mounted. Then the resulting
-  batch directories will only contain sysmlinks to the full resolution images.
-  If --zefys-prefix is omitted then the images would be downloaded.
-
-  The symlinks or files are stored in a batch directory structure where the
-  option --batch-size controls how many items are stored per batch directory.
-  Which newspapers and time periods are included can be controlled by the
-  --zdb-id, --year, --month ... options. If batch-size is not given then all
-  items are stored flatly in one directory.
-
-  The --max-count option limits the number of returned items. The --random
-  option implements a uniform sampling from the items remaining after
-  filtering. For instance max-count=1000 and --random option combined create a
-  uniform random sample of size 1000.
-
-  The --page_sequence_len option force a grouping of pages for instance page-
-  sequence-len=3 returns random page-sequences of length 3. When combined with
-  tag-csv-file, a CSV file ist written that contains the grouping information
-  which can be imported into the image-search via the add_ZEFYS_tags tool that
-  is also included in this package.
-
-  SCAN_IMAGES_FILE: A TSV file containing of list of all ZEFYS page scan image
-  files that are to be considered. This file can be created with zefys-
-  scanner.
-
-  TARGET_PATH: Either the name of the new directory where the symlinks or
-  downloaded images are stored if batch-size is omitted or a prefix for the
-  batch directories names to be created if batch-size is specified.
-
-Options:
-  --zefys-prefix TEXT           ZEFYY NFS storage path. If specified only
-                                symlinks to this location will be created.
-  --zdb-id TEXT                 Consider only this ZDB-ID (can be supplied
-                                multiple times).
-  --year INTEGER                Consider only this year (can be supplied
-                                multiple times).
-  --start-year INTEGER          Consider a time interval [start-year, stop-
-                                year[
-  --stop-year INTEGER           Consider a time interval [start-year, stop-
-                                year[
-  --month INTEGER               Consider only this month (can be supplied
-                                multiple times).
-  --start-month INTEGER         Consider a time interval [start-month, stop-
-                                month[
-  --stop-month INTEGER          Consider a time interval [start-month, stop-
-                                month[
-  --day INTEGER                 Consider only this day (can be supplied
-                                multiple times).
-  --start-day INTEGER           Consider a time interval [start-day, stop-day[
-  --stop-day INTEGER            Consider a time interval [start-day, stop-day[
-  --issue INTEGER               Consider only this issue (can be supplied
-                                multiple times).
-  --start-issue INTEGER         Consider a time interval [start-issue, stop-
-                                issue[
-  --stop-issue INTEGER          Consider a time interval [start-issue, stop-
-                                issue[
-  --page INTEGER                Consider only this page (can be supplied
-                                multiple times).
-  --start-page INTEGER          Consider a page interval [start-page, stop-
-                                page[
-  --stop-page INTEGER           Consider a page interval [start-page, stop-
-                                page[
-  --language INTEGER            Consider only this language (can be supplied
-                                multiple times).
-  --batch-size INTEGER          Split into batches of this size.
-  --start-batch INTEGER         Ignore all batches before start-batch.
-  --num-batches INTEGER         Create at most num-batches.
-  --exclude-tsv PATH            Exclude the files listed in this TSV file. Can
-                                be supplied multiple times
-  --dry-run                     Do not actually do anything.
-  --random
-  --page-sequence-len INTEGER
-  --max-count INTEGER           Limits the number of returned items.
-  --tag-csv-file TEXT
-  --scan-images-separator TEXT
-  --help                        Show this message and exit.
-```
-## zefys-ocr-database
-```
-Usage: zefys-ocr-database [OPTIONS] DIRECTORY SQLITE_FILE
-
-  Creates, appends to, or updates a (new) SQLITE database where the PAGE-XML-
-  OCR files are stored as ZIP-compressed binary blobs. This enables space
-  efficient storage, performant access with respect to the properties ZDB-ID,
-  YEAR, MONTH, DAY, ISSUE, and PAGE. Additionally, these SQLITE database files
-  can be efficiently copied between different host computers, for instance by
-  "scp".
-
-  The tool expects the PAGE-XML filenames to have the following structure:
-  ZDBID-YEAR-MONTH-DAY-ISSUE-PAGE.xml .
-
-  All the XML-files in the database or a particular subset of them can be
-  extract by the command "zefys-unpack-ocr-database".
-
-  DIRECTORY: Recursively search XML files in this directory. SQLITE_FILE: The
-  database file.
-
-Options:
-  --pattern TEXT           File pattern to search for. Default: *.xml . Can be
-                           used in order to consider only a particular subset
-                           of subdirectories in the recursive search, for
-                           instance */ey-ocr*/*.xml considers only XML files
-                           located in a subdirectory that starts with ey-
-                           ocr...
-  --append                 Append to database file instead of creating a new
-                           one. Entries that already exist for a particular
-                           combination of ZDB-ID,YEAR,MONTH,DAY,ISSUE, and
-                           PAGE will be ignored. Only new entries will be
-                           added.
-  --update                 Update database file instead of creating a new one.
-                           If a particular combination of ZDB-
-                           ID,YEAR,MONTH,DAY,ISSUE, and PAGE alreadys exists
-                           it would be replaced by the new file.
-  --follow-symlinks
-  --subset-json PATH       Consider only the subset of page-XML files defined
-                           in this json file.
-  --subset-dirs-json PATH  Recursively search only through a subset of sub-
-                           directories as defined in this json file.
-  --processes INTEGER      Number of parallel processes to be used. (default
-                           all cores)
-  --help                   Show this message and exit.
-```
-## zefys-unpack-ocr-database
-```
-Usage: zefys-unpack-ocr-database [OPTIONS] SQLITE_FILE
-
-Options:
-  --flat                 Do not create a directory structure.
-  --processes INTEGER    Number of parallel processes to be used. (default all
-                         cores)
-  --download-images      Download corresponding images from SBB content
-                         server.BEWARE: USE WITH CARE!!!!!
-  --dry-run              Do not actually unpack anything.
-  --zdb-id TEXT          Consider only this ZDB-ID (can be supplied multiple
-                         times).
-  --year INTEGER         Consider only this year (can be supplied multiple
-                         times).
-  --start-year INTEGER   Consider a time interval [start-year, stop-year[
-  --stop-year INTEGER    Consider a time interval [start-year, stop-year[
-  --month INTEGER        Consider only this month (can be supplied multiple
-                         times).
-  --start-month INTEGER  Consider a time interval [start-month, stop-month[
-  --stop-month INTEGER   Consider a time interval [start-month, stop-month[
-  --day INTEGER          Consider only this day (can be supplied multiple
-                         times).
-  --start-day INTEGER    Consider a time interval [start-day, stop-day[
-  --stop-day INTEGER     Consider a time interval [start-day, stop-day[
-  --issue INTEGER        Consider only this issue (can be supplied multiple
-                         times).
-  --start-issue INTEGER  Consider a time interval [start-issue, stop-issue[
-  --stop-issue INTEGER   Consider a time interval [start-issue, stop-issue[
-  --page INTEGER         Consider only this page (can be supplied multiple
-                         times).
-  --start-page INTEGER   Consider a page interval [start-page, stop-page[
-  --stop-page INTEGER    Consider a page interval [start-page, stop-page[
-  --help                 Show this message and exit.
-```
-## zefys-join-ocr-databases
-```
-Usage: zefys-join-ocr-databases [OPTIONS] TARGET_SQLITE [SOURCE_SQLITE]...
+Usage: evaluate-article-matching [OPTIONS] GT_TSV_FILE MATCH_TSV_FILE
 
 Options:
   --help  Show this message and exit.
 ```
-## zefys-ocr-filelist
+## extract-article-separation
 ```
-Usage: zefys-ocr-filelist [OPTIONS] SQLITE_FILE TSV_FILE_OUT
+Usage: extract-article-separation [OPTIONS] DIRECTORY OUT_FILE
+
+  A tool that extracts the article separation information from the PAGE-XML
+  files of NLF and BnF datasets into a TSV-file (OUT_FILE) that describes one
+  article polygon per line and in its entirety corresponds to the article
+  polygon sequence of the dataset where the article polygons are the
+  <TextRegions> in the XML-files.
+
+  The XML-files to be processed are found by recursively parsing DIRECTORY.
 
 Options:
-  --help  Show this message and exit.
-```
-## create-article-database
-```
-Usage: create-article-database [OPTIONS] OCR_DB_SQLITE SQLITE_FILE
-
-
-
-Options:
-  --processes INTEGER    Number of parallel processes to be used. (default all
-                         cores)
-  --zdb-id TEXT          Consider only this ZDB-ID (can be supplied multiple
-                         times).
-  --year INTEGER         Consider only this year (can be supplied multiple
-                         times).
-  --start-year INTEGER   Consider a time interval [start-year, stop-year[
-  --stop-year INTEGER    Consider a time interval [start-year, stop-year[
-  --month INTEGER        Consider only this month (can be supplied multiple
-                         times).
-  --start-month INTEGER  Consider a time interval [start-month, stop-month[
-  --stop-month INTEGER   Consider a time interval [start-month, stop-month[
-  --day INTEGER          Consider only this day (can be supplied multiple
-                         times).
-  --start-day INTEGER    Consider a time interval [start-day, stop-day[
-  --stop-day INTEGER     Consider a time interval [start-day, stop-day[
-  --issue INTEGER        Consider only this issue (can be supplied multiple
-                         times).
-  --start-issue INTEGER  Consider a time interval [start-issue, stop-issue[
-  --stop-issue INTEGER   Consider a time interval [start-issue, stop-issue[
-  --page INTEGER         Consider only this page (can be supplied multiple
-                         times).
-  --start-page INTEGER   Consider a page interval [start-page, stop-page[
-  --stop-page INTEGER    Consider a page interval [start-page, stop-page[
-  --help                 Show this message and exit.
-```
-## article-json-export
-```
-Usage: article-json-export [OPTIONS] ART_DB_SQLITE
-
-Options:
-  --json-file PATH
-  --json-single-line-file PATH
-  --zdb-json-meta-file PATH
-  --zdb-id TEXT                 Consider only this ZDB-ID (can be supplied
-                                multiple times).
-  --year INTEGER                Consider only this year (can be supplied
-                                multiple times).
-  --start-year INTEGER          Consider a time interval [start-year, stop-
-                                year[
-  --stop-year INTEGER           Consider a time interval [start-year, stop-
-                                year[
-  --month INTEGER               Consider only this month (can be supplied
-                                multiple times).
-  --start-month INTEGER         Consider a time interval [start-month, stop-
-                                month[
-  --stop-month INTEGER          Consider a time interval [start-month, stop-
-                                month[
-  --day INTEGER                 Consider only this day (can be supplied
-                                multiple times).
-  --start-day INTEGER           Consider a time interval [start-day, stop-day[
-  --stop-day INTEGER            Consider a time interval [start-day, stop-day[
-  --issue INTEGER               Consider only this issue (can be supplied
-                                multiple times).
-  --start-issue INTEGER         Consider a time interval [start-issue, stop-
-                                issue[
-  --stop-issue INTEGER          Consider a time interval [start-issue, stop-
-                                issue[
-  --page INTEGER                Consider only this page (can be supplied
-                                multiple times).
-  --start-page INTEGER          Consider a page interval [start-page, stop-
-                                page[
-  --stop-page INTEGER           Consider a page interval [start-page, stop-
-                                page[
-  --help                        Show this message and exit.
-```
-## zefys-create-embeddings
-```
-Usage: zefys-create-embeddings [OPTIONS] ART_DB_SQLITE EMB_DB_SQLITE MODEL_DIR
-
-Options:
-  --processes INTEGER
-  --max-token-length INTEGER
-  --batch-size INTEGER
-  --help                      Show this message and exit.
-```
-## compute-summaries
-```
-Usage: compute-summaries [OPTIONS] ART_DB_SQLITE MODEL
-
-Options:
-  --zdb-id TEXT             Consider only this ZDB-ID (can be supplied
-                            multiple times).
-  --year INTEGER            Consider only this year (can be supplied multiple
-                            times).
-  --start-year INTEGER      Consider a time interval [start-year, stop-year[
-  --stop-year INTEGER       Consider a time interval [start-year, stop-year[
-  --month INTEGER           Consider only this month (can be supplied multiple
-                            times).
-  --start-month INTEGER     Consider a time interval [start-month, stop-month[
-  --stop-month INTEGER      Consider a time interval [start-month, stop-month[
-  --day INTEGER             Consider only this day (can be supplied multiple
-                            times).
-  --start-day INTEGER       Consider a time interval [start-day, stop-day[
-  --stop-day INTEGER        Consider a time interval [start-day, stop-day[
-  --issue INTEGER           Consider only this issue (can be supplied multiple
-                            times).
-  --start-issue INTEGER     Consider a time interval [start-issue, stop-issue[
-  --stop-issue INTEGER      Consider a time interval [start-issue, stop-issue[
-  --page INTEGER            Consider only this page (can be supplied multiple
-                            times).
-  --start-page INTEGER      Consider a page interval [start-page, stop-page[
-  --stop-page INTEGER       Consider a page interval [start-page, stop-page[
-  --prompt TEXT             Prompt identifier (see summary_prompts.py).
-                            Default: prompt_BASIC_1_S_EN
-  --max-new-tokens INTEGER  Maximum number of tokens per summary. Default 512
-  --temperature FLOAT       Randomness temperature for generation.Default is
-                            deterministic generation.
-  --random                  Specify this to randomly select articles for
-                            generation.
-  --processes INTEGER       Number of HTTP request processes.
-  --ollama-url TEXT         Ollama URL. Can be supplied multiple times.
-                            Example http://localhost:11434 .
-  --help                    Show this message and exit.
-```
-## zefys-create-solr-index
-```
-Usage: zefys-create-solr-index [OPTIONS] EMB_DB_SQLITE SOLR_CORE_URL
-
-  EMB_DB_SQLITE: sqlite database that holds the embeddings to be imported.
-  SOLR_CORE_URL: Example: http://localhost:8983/solr/test .
-
-Options:
-  --embedding-dim [128|256|512|768]
-                                  Use first N dimensions of embeddings.
-                                  Default 128.
-  --hnsw-beam-width [16|32|64]
-  --hnsw-max-connections [100|200|400]
-  --collation-mode [raw|mean|max|min|absminmax]
-                                  How to collate multiple embeddings of longer
-                                  texts. Default: raw => do not collate at
-                                  all.
-  --stop-at INTEGER               Process only the first N embeddings.
-                                  Default: Process all.
-  --skip-first INTEGER            Skip the first N embeddings. Default: skip
-                                  nothing.
-  --chunk-size INTEGER            Commit in chunks of size N to solr. Default
-                                  100000.
-  --processes INTEGER             Number of concurrent data feeder processes.
-                                  Default 10.
-  --help                          Show this message and exit.
-```
-## query-solr-index
-```
-Usage: query-solr-index [OPTIONS]
-
-Options:
-  --solr-core-url TEXT
-  --model-dir PATH
-  --query-text TEXT
-  --k INTEGER                     k. Default 10.
-  --limit-factor INTEGER          Limit. Default 10.
-  --embedding-dim [128|256|512|768]
-                                  Use first N dimensions of embeddings.
-                                  Default 128.
-  --hnsw-beam-width [16|32|64]
-  --hnsw-max-connections [100|200|400]
-  --collation-mode [raw|mean|max|min|absminmax]
-                                  How to collate multiple embeddings of longer
-                                  texts. Default: mean.
-  --art-db-sqlite PATH
-  --summaries-db PATH
-  --query-result-db PATH
-  --write-query-json PATH
-  --stop-at INTEGER
-  --processes INTEGER
-  --chunk-size INTEGER
-  --help                          Show this message and exit.
-```
-## zefys-create-annoy-index
-```
-Usage: zefys-create-annoy-index [OPTIONS] EMB_DB_SQLITE
-
-Options:
-  --dist-measure TEXT      Distance measure of the approximate nearest
-                           neighbour index. default: angular.
-  --n-trees INTEGER        Number of search trees. Default 10.
-  --shard TEXT
-  --embedding-dim INTEGER
-  --stop-at INTEGER
-  --help                   Show this message and exit.
-```
-## download-w3c-annotation-images
-```
-Usage: download-w3c-annotation-images [OPTIONS] W3C_ANNO_JSON TARGET_DIR
-
-Options:
-  --from-zefys
-  --user TEXT
-  --password TEXT
-  --help           Show this message and exit.
-```
-## compile-article-separation-gt
-```
-Usage: compile-article-separation-gt [OPTIONS] W3C_ANNO_JSON OUT_TSV
-
-Options:
-  --check-only
-  --help        Show this message and exit.
+  --pattern TEXT     Consider only XML-files that match this pattern. Default:
+                     *.xml.
+  --follow-symlinks  Follow symlinks while traversing the DIRECTORY.
+  --mode [bnf|nlf]   File parse mode that defines how meta-data information is
+                     extracted from the filename - if possible. Default: bnf
+  --help             Show this message and exit.
 ```
 ## match-article-sequences
 ```
 Usage: match-article-sequences [OPTIONS] GT_TSV_FILE XML_DIR OUT_FILE
 
+  A tool that takes the article-polygon-sequence TSV files - obtained by
+  either compile-article-separation-gt or extract-article-separation - as well
+  as a directory (XML_DIR) with PAGE-XML files as inputs. For each text line
+  in the PAGE-XML- files, the article polygon of largest intersection in the
+  TSV file is determined. A matching-TSV file is produced, that corresponds to
+  the <TextLine> sequence of the entire PAGE-XML input directory mapped to the
+  TSV polygons, first order sorted by page sequence, second order sorted by
+  page, and third order sorted by the reading order defined in the PAGE-XML
+  files.
+
 Options:
   --help  Show this message and exit.
 ```
-## scan-graph-regions-ocr-database
+## compile-article-separation-gt
 ```
-Usage: scan-graph-regions-ocr-database [OPTIONS] SCAN_IMAGES_FILE SQLITE_FILE
-                                       OUT_REGION_FILE
+Usage: compile-article-separation-gt [OPTIONS] W3C_ANNO_JSON OUT_TSV
 
-  Scan an PAGE-XML OCR database for ImageRegion XML-Elements. Writes the
-  region boundaries into a CSV file together with the image file and url.
+  A tool that compiles the W3C-JSON file into a tab separated value file
+  (OUT_TSV) that describes one article polygon per line and in its entirety
+  corresponds to the article polygon sequence of the dataset including all
+  pages.
 
-  SCAN_IMAGES_FILE: The NFS image file list that was used for the OCR database
-  creation (see zefys-scanner).
+  The tool checks the annotations for consistency - as far as this can be done
+  automatically - and writes errors to stdout.
 
-  SQLITE_FILE : The OCR database.
-
-  OUT_REGION_FILE : Output CSV file.
+  The W3C-JSON file has been created with the region annotation tool:
+  https://github.com/qurator-spk/sbb_images/blob/6623081cd1b80864e6eca85ab4d7940f5045d1b8/doc/region-annotator.md
 
 Options:
-  --processes INTEGER           Number of parallel processes to be used.
-                                (default all cores)
-  --dry-run                     Do not actually unpack anything.
-  --zdb-id TEXT                 Consider only this ZDB-ID (can be supplied
-                                multiple times).
-  --year INTEGER                Consider only this year (can be supplied
-                                multiple times).
-  --start-year INTEGER          Consider a time interval [start-year, stop-
-                                year[
-  --stop-year INTEGER           Consider a time interval [start-year, stop-
-                                year[
-  --month INTEGER               Consider only this month (can be supplied
-                                multiple times).
-  --start-month INTEGER         Consider a time interval [start-month, stop-
-                                month[
-  --stop-month INTEGER          Consider a time interval [start-month, stop-
-                                month[
-  --day INTEGER                 Consider only this day (can be supplied
-                                multiple times).
-  --start-day INTEGER           Consider a time interval [start-day, stop-day[
-  --stop-day INTEGER            Consider a time interval [start-day, stop-day[
-  --issue INTEGER               Consider only this issue (can be supplied
-                                multiple times).
-  --start-issue INTEGER         Consider a time interval [start-issue, stop-
-                                issue[
-  --stop-issue INTEGER          Consider a time interval [start-issue, stop-
-                                issue[
-  --page INTEGER                Consider only this page (can be supplied
-                                multiple times).
-  --start-page INTEGER          Consider a page interval [start-page, stop-
-                                page[
-  --stop-page INTEGER           Consider a page interval [start-page, stop-
-                                page[
-  --scan-images-separator TEXT
-  --zefys-prefix TEXT
-  --help                        Show this message and exit.
+  --check-only  Do not write TSV but output only consistency checks.
+  --help        Show this message and exit.
 ```
-## zefys-crop-images
+## download-w3c-annotation-images
 ```
-Usage: zefys-crop-images [OPTIONS] IMAGE_REGION_FILE
+Usage: download-w3c-annotation-images [OPTIONS] W3C_ANNO_JSON TARGET_DIR
 
-  IMAGE_REGION_FILE : Image region CSV file (see scan-graph-regions-ocr-
-  database).
+  Batch download of images referenced in a W3C-Annotation-JSON file (W3C-ANNO-
+  JSON) and write them to TARGET_DIR.
 
 Options:
-  --processes INTEGER    Number of parallel processes to be used. (default 3)
-  --min-width INTEGER    Do not extract regions whose width is below this
-                         limit. Default: No lower limit.
-  --min-height INTEGER   Do not extract regions whose height is below this
-                         limit. Default: No lower limit.
-  --flat                 Do not create a directory structure.
-  --dry-run              Do not actually unpack anything.
-  --max-count INTEGER    Extract only at most this number of regions.
-  --zdb-id TEXT          Consider only this ZDB-ID (can be supplied multiple
-                         times).
-  --year INTEGER         Consider only this year (can be supplied multiple
-                         times).
-  --start-year INTEGER   Consider a time interval [start-year, stop-year[
-  --stop-year INTEGER    Consider a time interval [start-year, stop-year[
-  --month INTEGER        Consider only this month (can be supplied multiple
-                         times).
-  --start-month INTEGER  Consider a time interval [start-month, stop-month[
-  --stop-month INTEGER   Consider a time interval [start-month, stop-month[
-  --day INTEGER          Consider only this day (can be supplied multiple
-                         times).
-  --start-day INTEGER    Consider a time interval [start-day, stop-day[
-  --stop-day INTEGER     Consider a time interval [start-day, stop-day[
-  --issue INTEGER        Consider only this issue (can be supplied multiple
-                         times).
-  --start-issue INTEGER  Consider a time interval [start-issue, stop-issue[
-  --stop-issue INTEGER   Consider a time interval [start-issue, stop-issue[
-  --page INTEGER         Consider only this page (can be supplied multiple
-                         times).
-  --start-page INTEGER   Consider a page interval [start-page, stop-page[
-  --stop-page INTEGER    Consider a page interval [start-page, stop-page[
-  --help                 Show this message and exit.
+  --from-zefys     Special treatment for ZEFYS links.
+  --user TEXT      Username for basic auth.
+  --password TEXT  Password for basic auth
+  --help           Show this message and exit.
 ```
