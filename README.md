@@ -28,36 +28,33 @@ pip install git+https://github.com/qurator-spk/RAC.git
 
 ## Workflow
 
-* [zefys-scanner](doc/CLI.md#zefys-scanner) | [zefys-downloader](doc/CLI.md#zefys-downloader)
-* [zefys-ocr-database](doc/CLI.md#zefys-ocr-database) 
-| [zefys-unpack-ocr-database](doc/CLI.md#zefys-unpack-ocr-database)
-| [zefys-join-ocr-databases](doc/CLI.md#zefys-join-ocr-databases)
-| [zefys-ocr-filelist](doc/CLI.md#zefys-ocr-filelist)
-* [create-article-database](doc/CLI.md#create-article-database)
-| [article-json-export](doc/CLI.md#article-json-export)
-* [zefys-create-embeddings](doc/CLI.md#zefys-create-embeddings)
-* [compute-summaries](doc/CLI.md#compute-summaries)
-* [zefys-create-solr-index](doc/CLI.md#zefys-create-solr-index)
-| [query-solr-index](doc/CLI.md#query-solr-index)
-* [zefys-create-annoy-index](doc/CLI.md#zefys-create-annoy-index)
+* [compile-article-separation-gt](doc/CLI.md#compile-article-separation-gt)
+* [extract-article-separation](doc/CLI.md#extract-article-separation) 
+| [match-article-sequences](doc/CLI.md#zefys-unpack-ocr-database)
+| [compute-rac](doc/CLI.md#compute-rac)
+| [evaluate-article-matching](doc/CLI.md#evaluate-article-matching)
+* [download-w3c-annotation-images](doc/CLI.md#download-w3c-annotation-images)
+| 
+
+See also [Makefile](Makefile).
 
 ```mermaid
 graph TD
-    NFS[NFS-filesystem e.g. /nfs/zefys] --> |zefys-scanner| ZEFYS-FILELIST(ZEFYS-filelist)
-    ZEFYS-FILELIST -->|zefys-downloader| BATCH-DIRECTORIES(batch directories)
-    BATCH-DIRECTORIES -->|eynollah| PAGE-XMLS(page XML files)
-    PAGE-XMLS -->|zefys-ocr-database| OCR-DATABASE(compressed sqlite OCR-database)
-    OCR-DATABASE -->|create-article-database| ARTICLE-DATABASE(article database)
-    ARTICLE-DATABASE -->|article-json-export| ARTICLE-JSON(articles as JSON)
-    OCR-DATABASE -->|zefys-unpack-ocr-database| PAGE-XMLS
-    OCR-DATABASE -->|zefys-ocr-filelist| OCR-FILELIST(filelist of archive as TSV file)
-    OCR-DATABASE-2(Another OCR database) -->|zefys-join-ocr-databases| JOINED-OCR-DATABASE(joined OCR-database)
-    OCR-DATABASE -->|zefys-join-ocr-databases| JOINED-OCR-DATABASE(joined OCR-database)
-    ARTICLE-DATABASE -->|zefys-create-embeddings| EMBEDDING-DATABASE(embedding database)
-    ARTICLE-DATABASE -->|compute summaries| SUMMARIES(summaries) --> ARTICLE-DATABASE
-    EMBEDDING-DATABASE -->|zefys-create-solr-index| SOLR-INDEX(Apache solr index)
-    EMBEDDING-DATABASE -->|zefys-create-annoy-index| ANNOY-INDEX(annoy index)
-    SOLR-INDEX --> WEB-INTERFACE(web interface)
-    SOLR-INDEX -->|query-solr-index| QUERY-RESULT(query results / quantitative evaluation)
+    W3C-ANNO-JSON[W3C-ANNO-JSON file created with Annotationtool] --> COMPILE-ARTICLE-SEPARATION([compile-article-separation-gt])
+    COMPILE-ARTICLE-SEPARATION --> ARTICLE-POLYGON-TSV(ARTICLE-POLYGON-TSV)
+    PAGE-XML-ARTICLE-ID["Directory with PAGE-XML files that have TextRegion-XML elements and Article-ID attributes in NewsEye style"] --> EXTRACT-ARTICLE-SEPARATION([extract-article-separation])
+    EXTRACT-ARTICLE-SEPARATION --> ARTICLE-POLYGON-TSV
+    ARTICLE-POLYGON-TSV --> MATCH-ARTICLE-SEQUENCE([match-article-sequence])
+    MATCH-ARTICLE-SEQUENCE --> MATCHING-FILE(Matching file)
+    PAGE-XML-LAYOUT-READING_ORDER(Directory with PAGE-XML files that have a reading order) --> MATCH-ARTICLE-SEQUENCE
+    MATCHING-FILE --> COMPUTE-RAC([compute-rac]) 
+    ARTICLE-POLYGON-TSV --> COMPUTE-RAC
+    COMPUTE-RAC --> RAC-CSW(RAC-CSW Table)
+    W3C-ANNO-JSON --> DOWNLOAD-W3C-ANNOTATION-IMAGES(download-w3c-annotation-images)
+    DOWNLOAD-W3C-ANNOTATION-IMAGES --> IMAGE-DIR(Directory containing the images referenced in the W3C-ANNO-JSON)
+
+    MATCHING-FILE --> EVALUATE-ARTICLE-MATCHING([evaluate-article-matching]) 
+    ARTICLE-POLYGON-TSV --> EVALUATE-ARTICLE-MATCHING
+    EVALUATE-ARTICLE-MATCHING --> EVALUATION-REPORT[Evaluation report]
      
 ```
