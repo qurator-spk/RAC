@@ -2,12 +2,12 @@
 requires = ["setuptools>=61.0", "wheel"]
 
 [project]
-name = "SPUNK"
+name = "RAC"
 authors = [
     {name = "Kai Labusch"},
     {name = "Staatsbibliothek zu Berlin - Preußischer Kulturbesitz"},
 ]
-description = "(S)prach(U)nabhängiger (N)achrichtenkosmos"
+description = "Reading Order Article Coherence Toolbox"
 readme = "README.md"
 license.file = "LICENSE"
 requires-python = ">=3.11"
@@ -25,32 +25,16 @@ classifiers = [
 ]
 
 [project.scripts]
-evaluate-article-matching = "spunk.article_separation:evaluate_matching_result"
-extract-article-separation = "spunk.article_separation:extract_article_separation"
-match-article-sequences = "spunk.article_separation:match_article_sequences"
-compile-article-separation-gt = "spunk.article_separation:compile_article_separation_gt"
-download-w3c-annotation-images = "spunk.zefys:download_w3c_annotation_images"
-zefys-scanner = "spunk.zefys:scanner"
-zefys-downloader = "spunk.zefys:downloader"
-zefys-ocr-database = "spunk.zefys:create_ocr_database"
-zefys-unpack-ocr-database = "spunk.zefys:unpack_ocr_database"
-scan-graph-regions-ocr-database = "spunk.image_scanner:scan_images_ocr_database"
-zefys-crop-images = "spunk.image_scanner:crop_images"
-zefys-join-ocr-databases = "spunk.zefys:join_ocr_databases"
-zefys-ocr-filelist = "spunk.zefys:extract_filelist_ocr_database"
-zefys-create-embeddings = "spunk.embeddings:create_embeddings"
-zefys-emb-test = "spunk.embeddings:emb_test"
-zefys-create-annoy-index = "spunk.index:create_annoy_index"
-zefys-create-solr-index = "spunk.index:create_solr_index"
-query-solr-index="spunk.index:query_solr_index"
-create-article-database = "spunk.articles:create_article_database"
-article-json-export = "spunk.articles:article_json_export"
-compute-summaries= "spunk.summary:compute_summaries"
-summary-test = "spunk.summary:sum_test"
+evaluate-article-matching = "rac.article_separation:evaluate_matching_result"
+extract-article-separation = "rac.article_separation:extract_article_separation"
+match-article-sequences = "rac.article_separation:match_article_sequences"
+compile-article-separation-gt = "rac.article_separation:compile_article_separation_gt"
+download-w3c-annotation-images = "rac.zefys:download_w3c_annotation_images"
+scan-graph-regions-ocr-database = "rac.image_scanner:scan_images_ocr_database"
 
 [project.urls]
-Homepage = "https://code.dev.sbb.berlin/idm4/SPUNK"
-Repository = "https://code.dev.sbb.berlin/idm4/SPUNK.git"
+Homepage = "https://github.com/qurator-spk/RAC"
+Repository = "https://github.com/qurator-spk/RAC.git"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

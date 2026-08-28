@@ -1,5 +1,3 @@
-openpyxl
-lxml
 tqdm
 tabulate
 matplotlib
@@ -7,13 +5,4 @@ numpy
 pandas 
 click
 requests
-somajo
-transformers
-sentence-transformers
-annoy
-Flask
-Flask-CacheControl
-flask-htpasswd
-gunicorn
-pysolr
-bcrypt==4.0.1
+shapely
