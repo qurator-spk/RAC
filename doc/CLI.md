@@ -73,8 +73,24 @@ Usage: match-article-sequences [OPTIONS] ARTICLE_TSV_FILE XML_DIR OUT_FILE
 Options:
   --help  Show this message and exit.
 ```
-## compile-article-separation-art
+## compile-article-separation-gt
 ```
+Usage: compile-article-separation-gt [OPTIONS] W3C_ANNO_JSON OUT_TSV
+
+  A tool that compiles the W3C-JSON file into a tab separated value file
+  (OUT_TSV) that describes one article polygon per line and in its entirety
+  corresponds to the article polygon sequence of the dataset including all
+  pages.
+
+  The tool checks the annotations for consistency - as far as this can be done
+  automatically - and writes errors to stdout.
+
+  The W3C-JSON file has been created with the region annotation tool:
+  https://github.com/qurator-spk/sbb_images/blob/6623081cd1b80864e6eca85ab4d7940f5045d1b8/doc/region-annotator.md
+
+Options:
+  --check-only  Do not write TSV but output only consistency checks.
+  --help        Show this message and exit.
 ```
 ## download-w3c-annotation-images
 ```
