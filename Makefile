@@ -69,5 +69,5 @@ CLI_DOC_FILE=doc/CLI.md
 CLI-MD-HEADER:
 	rm $(CLI_DOC_FILE)
 
-CLI-MD: CLI-MD-HEADER compute-rac-command-doc evaluate-article-matching-command-doc extract-article-separation-command-doc match-article-sequences-command-doc compile-article-separation-art-command-doc download-w3c-annotation-images-command-doc
+CLI-MD: CLI-MD-HEADER compute-rac-command-doc evaluate-article-matching-command-doc extract-article-separation-command-doc match-article-sequences-command-doc compile-article-separation-gt-command-doc download-w3c-annotation-images-command-doc
 
