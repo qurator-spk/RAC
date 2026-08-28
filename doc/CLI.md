@@ -2,9 +2,17 @@
 ```
 Usage: compute-rac [OPTIONS]
 
+  Computes the Reading Order Article Coherence (RAC) and context switch
+  statistics for pairs of article polygon sequence TSV and matching TSV files.
+
+  The article polygon TSVs (obtained either from compile-article-separation-gt
+  or extract-article-separation) and matching TSVs (obtained from match-
+  article-sequence) have to be added pairwise with the  --article-tsv-file and
+  --match-tsv-file options which can be supplied multiple times.
+
 Options:
-  --article-tsv-file PATH
-  --match-tsv-file PATH
+  --article-tsv-file PATH         Add article polygon sequence TSV file.
+  --match-tsv-file PATH           Add matching TSV-FILE
   --mode [all|multi-part-one-page]
                                   Perform RAC computation either for all
                                   articles or only for multi part articles
@@ -13,7 +21,17 @@ Options:
 ```
 ## evaluate-article-matching
 ```
-Usage: evaluate-article-matching [OPTIONS] GT_TSV_FILE MATCH_TSV_FILE
+Usage: evaluate-article-matching [OPTIONS] ARTICLE_TSV_FILE MATCH_TSV_FILE
+
+  Evaluate various aspects of an article separation - layout/ocr/reading order
+  matching.
+
+  ARTICLE_TSV_FILE: the file containing the article polygon information, i.e.,
+  obtained eiter from compile-article-separation-gt or from extract-article-
+  separation.
+
+  MATCH_TSV_FILE: article reading order matching obtained with match-article-
+  sequences
 
 Options:
   --help  Show this message and exit.
@@ -40,7 +58,7 @@ Options:
 ```
 ## match-article-sequences
 ```
-Usage: match-article-sequences [OPTIONS] GT_TSV_FILE XML_DIR OUT_FILE
+Usage: match-article-sequences [OPTIONS] ARTICLE_TSV_FILE XML_DIR OUT_FILE
 
   A tool that takes the article-polygon-sequence TSV files - obtained by
   either compile-article-separation-gt or extract-article-separation - as well
@@ -55,24 +73,8 @@ Usage: match-article-sequences [OPTIONS] GT_TSV_FILE XML_DIR OUT_FILE
 Options:
   --help  Show this message and exit.
 ```
-## compile-article-separation-gt
+## compile-article-separation-art
 ```
-Usage: compile-article-separation-gt [OPTIONS] W3C_ANNO_JSON OUT_TSV
-
-  A tool that compiles the W3C-JSON file into a tab separated value file
-  (OUT_TSV) that describes one article polygon per line and in its entirety
-  corresponds to the article polygon sequence of the dataset including all
-  pages.
-
-  The tool checks the annotations for consistency - as far as this can be done
-  automatically - and writes errors to stdout.
-
-  The W3C-JSON file has been created with the region annotation tool:
-  https://github.com/qurator-spk/sbb_images/blob/6623081cd1b80864e6eca85ab4d7940f5045d1b8/doc/region-annotator.md
-
-Options:
-  --check-only  Do not write TSV but output only consistency checks.
-  --help        Show this message and exit.
 ```
 ## download-w3c-annotation-images
 ```

@@ -1076,12 +1076,22 @@ def _evaluate_matching_result(article_tsv_file, match_tsv_file):
              'tag_distribution': tag_distribution }
 
 @click.command()
-@click.option('--article-tsv-file', type=click.Path(exists=True), multiple=True, default=[])
-@click.option('--match-tsv-file', type=click.Path(exists=True), multiple=True, default=[])
+@click.option('--article-tsv-file', type=click.Path(exists=True), multiple=True, default=[],
+              help="Add article polygon sequence TSV file.")
+@click.option('--match-tsv-file', type=click.Path(exists=True), multiple=True, default=[],
+              help="Add matching TSV-FILE")
 @click.option('--mode', type=click.Choice(['all', 'multi-part-one-page']), default="all",
               help="Perform RAC computation either for all articles or only for multi part articles that do not span "
                    "multiple pages.")
 def compute_rac(article_tsv_file, match_tsv_file, mode):
+    """
+        Computes the Reading Order Article Coherence (RAC) and context switch statistics for pairs of article polygon
+        sequence TSV and matching TSV files.
+
+        The article polygon TSVs (obtained either from compile-article-separation-gt or extract-article-separation)
+        and matching TSVs (obtained from match-article-sequence) have to be added pairwise with the  --article-tsv-file and
+        --match-tsv-file options which can be supplied multiple times.
+    """
 
     if len(article_tsv_file)< 1:
         print("You have to provide at least one article-tsv-file!.")
