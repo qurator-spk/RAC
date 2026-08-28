@@ -29,12 +29,11 @@ pip install git+https://github.com/qurator-spk/RAC.git
 ## Workflow
 
 * [compile-article-separation-gt](doc/CLI.md#compile-article-separation-gt)
-* [extract-article-separation](doc/CLI.md#extract-article-separation) 
-| [match-article-sequences](doc/CLI.md#zefys-unpack-ocr-database)
-| [compute-rac](doc/CLI.md#compute-rac)
-| [evaluate-article-matching](doc/CLI.md#evaluate-article-matching)
+* [extract-article-separation](doc/CLI.md#extract-article-separation)
+* [match-article-sequences](doc/CLI.md#zefys-unpack-ocr-database)
+* [compute-rac](doc/CLI.md#compute-rac)
+* [evaluate-article-matching](doc/CLI.md#evaluate-article-matching)
 * [download-w3c-annotation-images](doc/CLI.md#download-w3c-annotation-images)
-| 
 
 See also [Makefile](Makefile).
 
