@@ -57,3 +57,10 @@ graph TD
     EVALUATE-ARTICLE-MATCHING --> EVALUATION-REPORT[Evaluation report]
      
 ```
+## Publication
+
+Labusch, K., Baierer, K., Bubula, M., Götze, J., Lehmann, J., Neudecker, C. (2026). Reading Order Article Coherence Dataset and Measure for Quality Assessment in Historical Newspapers. In Proceedings of the 8th International Workshop on Historical Document Imaging and Processing (HIP '26). Springer Lecture Notes in Computer Science. Springer, Cham.
+
+## Dataset
+
+[Reading Order Article Coherence Dataset.](https://doi.org/10.5281/zenodo.20265989)
